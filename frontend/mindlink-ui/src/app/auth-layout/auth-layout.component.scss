@@ -1,0 +1,576 @@
+// auth-layout.component.scss
+
+// ============================================
+// Variables
+// ============================================
+
+$color-bg: #0f172a;
+$color-bg-darker: #020617;
+$color-white: #ffffff;
+$color-gray-50: #f8fafc;
+$color-gray-100: #f1f5f9;
+$color-gray-200: #e2e8f0;
+$color-gray-300: #cbd5e1;
+$color-gray-400: #94a3b8;
+$color-gray-500: #64748b;
+$color-gray-600: #475569;
+$color-gray-700: #334155;
+
+$color-primary: #667eea;
+$color-primary-dark: #5568d3;
+$color-accent: #fbbf24;
+$color-accent-dark: #f59e0b;
+
+$color-success: #10b981;
+$color-warning: #f59e0b;
+$color-error: #ef4444;
+
+$radius-md: 8px;
+$radius-lg: 12px;
+$radius-full: 9999px;
+
+$shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+$shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
+$shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
+
+$transition-base: all 0.2s ease;
+$transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+@mixin glass-morphism {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+// ============================================
+// Layout
+// ============================================
+
+.layout-wrapper {
+  @include flex-column;
+  height: 100vh;
+  background: linear-gradient(135deg, $color-bg 0%, $color-bg-darker 100%);
+  color: $color-white;
+  overflow: hidden;
+}
+
+.layout-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0.5) 0%,
+    rgba(2, 6, 23, 0.3) 100%
+  );
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(102, 126, 234, 0.3);
+    border-radius: 3px;
+
+    &:hover {
+      background: rgba(102, 126, 234, 0.5);
+    }
+  }
+}
+
+.content-inner {
+  height: 100%;
+  padding: 0;
+}
+
+// ============================================
+// Navbar
+// ============================================
+
+.navbar {
+  @include flex-between;
+  padding: 0 1.5rem;
+  height: 64px;
+  @include glass-morphism;
+  box-shadow: $shadow-md;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar-start,
+.navbar-end {
+  @include flex-center;
+  gap: 1rem;
+}
+
+.navbar-end {
+  gap: 2rem;
+}
+
+// ============================================
+// Brand
+// ============================================
+
+.brand {
+  @include flex-center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.logo-container {
+  width: 36px;
+  height: 36px;
+  @include flex-center;
+  background: linear-gradient(135deg, $color-primary, $color-accent);
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+
+  svg {
+    width: 20px;
+    height: 20px;
+    color: $color-white;
+    stroke-width: 2.5;
+  }
+}
+
+.brand-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, $color-accent, $color-primary-dark);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.5px;
+}
+
+// ============================================
+// Mobile Menu Toggle
+// ============================================
+
+.mobile-menu-toggle {
+  display: none;
+  width: 36px;
+  height: 36px;
+  @include flex-center;
+  background: transparent;
+  border: none;
+  color: $color-white;
+  cursor: pointer;
+  border-radius: $radius-md;
+  transition: $transition-base;
+
+  svg {
+    width: 24px;
+    height: 24px;
+    stroke-width: 2;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  &.active {
+    background: rgba(102, 126, 234, 0.2);
+    color: $color-primary;
+  }
+
+  @media (max-width: 768px) {
+    display: flex;
+  }
+}
+
+// ============================================
+// User Menu
+// ============================================
+
+.user-menu {
+  position: relative;
+}
+
+.user-avatar {
+  @include flex-center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: $radius-full;
+  color: $color-white;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: $transition-base;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+    @include flex-center;
+    background: linear-gradient(135deg, $color-primary, $color-accent);
+    border-radius: 50%;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: $color-bg;
+  }
+
+  .username {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    @media (max-width: 768px) {
+      display: none;
+    }
+  }
+
+  .chevron {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2.5;
+    transition: transform 0.2s ease;
+  }
+}
+
+// ============================================
+// Dropdown Menu
+// ============================================
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  width: 280px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: $radius-lg;
+  box-shadow: $shadow-lg;
+  overflow: hidden;
+  animation: slideDown 0.2s ease;
+
+  @media (max-width: 768px) {
+    position: fixed;
+    top: 64px;
+    right: 0;
+    left: 0;
+    width: 100%;
+    border-radius: 0;
+    max-height: calc(100vh - 64px);
+    overflow-y: auto;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.menu-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 40;
+
+  @media (max-width: 768px) {
+    display: block;
+  }
+}
+
+.menu-header {
+  padding: 1rem;
+}
+
+.user-info {
+  @include flex-center;
+  gap: 1rem;
+}
+
+.avatar-large {
+  width: 48px;
+  height: 48px;
+  @include flex-center;
+  background: linear-gradient(135deg, $color-primary, $color-accent);
+  border-radius: 50%;
+  font-size: 1rem;
+  font-weight: 700;
+  color: $color-bg;
+  flex-shrink: 0;
+}
+
+.user-details {
+  @include flex-column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.user-name {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $color-white;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-email {
+  margin: 0;
+  font-size: 0.8rem;
+  color: $color-gray-400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.menu-items {
+  @include flex-column;
+  gap: 0;
+}
+
+.menu-item {
+  @include flex-center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  color: $color-gray-300;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: $transition-base;
+  text-align: left;
+  justify-content: flex-start;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: rgba(102, 126, 234, 0.15);
+    color: $color-primary;
+
+    svg {
+      color: $color-primary;
+    }
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+// ============================================
+// Logout Button
+// ============================================
+
+.logout-button {
+  @include flex-center;
+  gap: 0.625rem;
+  width: calc(100% - 2rem);
+  margin: 1rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.2));
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: $radius-md;
+  color: #fca5a5;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: $transition-base;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2;
+  }
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(220, 38, 38, 0.3));
+    border-color: rgba(239, 68, 68, 0.5);
+    color: #fecaca;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .spinner-small {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(252, 165, 165, 0.3);
+    border-top-color: #fca5a5;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ============================================
+// Login Button (Not Logged In)
+// ============================================
+
+.login-button {
+  @include flex-center;
+  gap: 0.625rem;
+  padding: 0.625rem 1.25rem;
+  background: linear-gradient(135deg, $color-primary, $color-primary-dark);
+  border: none;
+  border-radius: $radius-md;
+  color: $color-white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: $transition-base;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+
+  svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// ============================================
+// Responsive
+// ============================================
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0 1rem;
+    height: 56px;
+  }
+
+  .navbar-end {
+    gap: 1rem;
+  }
+
+  .brand-name {
+    font-size: 1.1rem;
+  }
+
+  .logo-container {
+    width: 32px;
+    height: 32px;
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  .menu-items {
+    max-height: calc(100vh - 250px);
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar {
+    padding: 0 0.75rem;
+  }
+
+  .brand {
+    gap: 0.5rem;
+  }
+
+  .brand-name {
+    display: none;
+  }
+
+  .logo-container {
+    width: 36px;
+    height: 36px;
+  }
+
+  .dropdown-menu {
+    width: 100%;
+  }
+
+  .menu-header {
+    padding: 0.75rem;
+  }
+
+  .logout-button {
+    width: calc(100% - 1.5rem);
+    margin: 0.75rem;
+    padding: 0.625rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dropdown-menu,
+  .user-avatar,
+  .menu-item,
+  .logout-button,
+  .login-button {
+    animation: none;
+    transition: none;
+  }
+}

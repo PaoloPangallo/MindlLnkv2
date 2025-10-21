@@ -1,0 +1,127 @@
+# ===============================================
+# 🐍 PYTHON / DJANGO
+# ===============================================
+
+# Ambiente virtuale
+.venv/
+venv/
+env/
+ENV/
+
+# Cache e compilati Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# File temporanei Django
+db.sqlite3
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+
+# Configurazioni locali
+*.env
+.env.*
+local_settings.py
+settings_local.py
+
+# Cartelle generate automaticamente
+/static/
+media/
+uploads/
+migrations/__pycache__/
+*.sqlite3
+
+# File temporanei di IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ===============================================
+# ⚙️  NODE / ANGULAR FRONTEND
+# ===============================================
+
+# Dipendenze
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Output build
+dist/
+build/
+tmp/
+temp/
+
+# Cache Angular
+.angular/cache/
+.angular/
+.cache/
+coverage/
+
+# File lock e ambiente frontend
+package-lock.json
+yarn.lock
+
+# File di servizio locali
+.DS_Store
+Thumbs.db
+
+# ===============================================
+# 🧰  GIT E VARI
+# ===============================================
+
+# Backup, test, temporanei
+*.bak
+*.tmp
+*.temp
+*.orig
+*.log
+
+# File di sistema
+*.ini
+*.iml
+*.class
+*.sublime-project
+*.sublime-workspace
+
+# Python virtual environment per sicurezza
+pip-wheel-metadata/
+__pypackages__/
+
+# ===============================================
+# 🔒  SICUREZZA
+# ===============================================
+
+# File contenenti credenziali
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.json
+*.pkl
+*.h5
+*.pt
+
+# ===============================================
+# ✅  FRONTEND PATH SPECIFICO (Angular)
+# ===============================================
+
+# ===============================================
+# ✅  Mantieni il frontend ma ignora le build
+# ===============================================
+!frontend/
+!frontend/**
+frontend/mindlink-ui/node_modules/
+frontend/mindlink-ui/dist/
+frontend/mindlink-ui/.angular/
+frontend/mindlink-ui/.vscode/
+frontend/mindlink-ui/.idea/
+frontend/mindlink-ui/.env
+
+
