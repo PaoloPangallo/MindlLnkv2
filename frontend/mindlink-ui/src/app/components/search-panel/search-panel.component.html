@@ -1,0 +1,32 @@
+<div class="search-panel">
+  <div class="search-box">
+    <input
+      type="text"
+      [(ngModel)]="query"
+      (input)="onSearchChange()"
+      placeholder="🔍 Cerca per titolo, descrizione o categoria..."
+    />
+    <button *ngIf="query" (click)="clearSearch()" class="btn-clear">✖</button>
+  </div>
+
+  <div *ngIf="isLoading" class="search-status">
+    <div class="spinner"></div>
+    <span>Cerco idee...</span>
+  </div>
+
+  <div *ngIf="!isLoading && results.length" class="results-dropdown">
+    <div
+      *ngFor="let r of results"
+      class="result-item"
+      (click)="selectResult(r)"
+    >
+      <strong>{{ r.title }}</strong>
+      <small *ngIf="r.category" class="result-cat">{{ r.category }}</small>
+      <p *ngIf="r.summary" class="result-summary">{{ r.summary }}</p>
+    </div>
+  </div>
+
+  <div *ngIf="noResults && !isLoading" class="no-results">
+    Nessun risultato trovato
+  </div>
+</div>

@@ -4,38 +4,12 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import {environment} from "../../environments/environment";
+import {Idea} from "../models/idea.model";
+import {Connection} from "../models/connection.model";
+import {SimilarIdea} from "../models/similar-idea.model";
 
 // === INTERFACCE ===
-export interface Connection {
-  id?: number;
-  source: number;
-  target: number;
-  type?: string;
-  strength?: number;
-  created_at?: string;
-  source_title?: string;
-  target_title?: string;
-}
 
-export interface Idea {
-  id?: number;
-  title: string;
-  content: string;
-  summary?: string;
-  category?: string;
-  keywords?: string[];
-  created_at?: string;
-  user?: string;
-  outgoing_connections?: Connection[];
-}
-
-export interface SimilarIdea {
-  id: number;
-  title: string;
-  summary: string;
-  category: string;
-  similarity: number;
-}
 
 // === SERVIZIO PRINCIPALE ===
 @Injectable({ providedIn: 'root' })

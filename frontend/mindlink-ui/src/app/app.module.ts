@@ -2,93 +2,132 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
+import { MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
 
-
-// 🔹 Componenti
+// 🔹 Componenti principali
 import { AppComponent } from './app.component';
-import { AuthComponent } from './auth/auth.component';
+import { AuthComponent } from './auth/auth.component'; // Standalone ✅
 import { GraphViewComponent } from './components/graph-view/graph-view.component';
 import { AuthLayoutComponent } from './auth-layout/auth-layout.component';
 
+// 🔹 Servizi e guardie
 import { AuthInterceptor } from './services/auth.interceptor';
 import { AuthGuard } from './services/auth.guard';
+import {NavbarComponent} from "./components/navbar/navbar.component";
+import { SearchPanelComponent } from './components/search-panel/search-panel.component';
 
 @NgModule({
   declarations: [
-    AppComponent,
-    // 👇 GraphViewComponent resta qui solo se NON è standalone
-    GraphViewComponent
+    AppComponent// layout principale
   ],
-    imports: [
-         BrowserModule,
-          BrowserAnimationsModule,
-          HttpClientModule,
-          MatSnackBarModule,
-          FormsModule,
-          ReactiveFormsModule,
-          AuthComponent,
+  imports: [
+    BrowserModule,
+    BrowserAnimationsModule,
+    HttpClientModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatSnackBarModule,
 
-        // ✅ Routing corretto
-        RouterModule.forRoot([
-  { path: 'auth', component: AuthComponent },
+    // ============================================================
+    // ✅ ROUTING COMPLETO E COERENTE CON LA NAVBAR
+    // ============================================================
+    RouterModule.forRoot([
+      // 🟢 Area pubblica (login / registrazione)
+      {path: 'auth', component: AuthComponent},
 
-  // 🔒 Layout protetto con guardia e children
-  {
-    path: '',
-    component: AuthLayoutComponent,
-    canActivate: [AuthGuard],
-    children: [
-      { path: 'graph', component: GraphViewComponent },
-
-      // ✅ Aggiungi qui la tua vista 3D
+      // 🔒 Area protetta (autenticata)
       {
-        path: 'graph3d',
-        loadComponent: () =>
-          import('./components/graph-view-3d/graph-view-3d.component').then(
-            (m) => m.GraphView3dComponent
-          ),
+        path: '',
+        component: AuthLayoutComponent,
+        canActivate: [AuthGuard],
+        children: [
+          // principali
+          {path: 'graph', component: GraphViewComponent},
+          {
+            path: 'graph3d',
+            loadComponent: () =>
+              import('./components/graph-view-3d/graph-view-3d.component').then(
+                (m) => m.GraphView3dComponent
+              ),
+          },
+
+          // navbar links
+          {
+            path: 'dashboard',
+            loadComponent: () =>
+              import('./components/dashboard/dashboard.component').then(
+                (m) => m.DashboardComponent
+              ),
+          },
+          {
+            path: 'ideas',
+            loadComponent: () =>
+              import('./components/ideas/ideas.component').then(
+                (m) => m.IdeasComponent
+              ),
+          },
+          {
+            path: 'explore',
+            loadComponent: () =>
+              import('./components/explore/explore.component').then(
+                (m) => m.ExploreComponent
+              ),
+          },
+          {
+            path: 'settings',
+            loadComponent: () =>
+              import('./components/settings/settings.component').then(
+                (m) => m.SettingsComponent
+              ),
+          },
+
+          // Admin
+          {
+            path: 'admin/training',
+            loadComponent: () =>
+              import('./components/admin-training/admin-training.component').then(
+                (m) => m.AdminTrainingComponent
+              ),
+          },
+
+          // Redirect default
+          {path: '', redirectTo: 'graph', pathMatch: 'full'},
+        ],
       },
 
-      // ✅ Già presente: training admin
-      {
-        path: 'admin/training',
-        loadComponent: () =>
-          import('./components/admin-training/admin-training.component').then(
-            (m) => m.AdminTrainingComponent
-          ),
-      },
+      // fallback
+      {path: '**', redirectTo: '/auth'},
+    ]),
 
-      // redirect di default
-      { path: '', redirectTo: 'graph', pathMatch: 'full' },
-    ],
-  },
+    // Standalone component
+    AuthLayoutComponent,
+    NavbarComponent,
+    GraphViewComponent,
+    SearchPanelComponent,
+  ],
 
-  // fallback
-  { path: '**', redirectTo: '/auth' },
-]),
-
-
-        // 👇 AuthComponent è standalone, quindi va solo importato
-        AuthComponent,
-        ReactiveFormsModule
-    ],
   providers: [
-     AuthGuard,
-  {
-    provide: HTTP_INTERCEPTORS,
-    useClass: AuthInterceptor,
-    multi: true
-  },
-  {
-    provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,
-    useValue: { duration: 3000, horizontalPosition: 'right', verticalPosition: 'top' }
-  }
-
+    AuthGuard,
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true,
+    },
+    {
+      provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,
+      useValue: {
+        duration: 3000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+      },
+    },
   ],
-  bootstrap: [AppComponent]
+
+  bootstrap: [AppComponent],
+  exports: [
+    SearchPanelComponent
+  ]
 })
 export class AppModule {}

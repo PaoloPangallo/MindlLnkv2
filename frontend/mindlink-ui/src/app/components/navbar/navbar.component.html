@@ -1,0 +1,258 @@
+<nav class="navbar" [class.scrolled]="scrolled">
+  <div class="navbar-container">
+    <!-- 🔹 Logo -->
+    <div class="navbar-logo" (click)="navigateTo('/dashboard')">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="1"></circle>
+          <circle cx="19" cy="12" r="1"></circle>
+          <circle cx="5" cy="12" r="1"></circle>
+          <path d="M12 5v14M5 12h14"></path>
+        </svg>
+      </div>
+      <span class="logo-text">IdeasHub</span>
+    </div>
+
+    <!-- 🔹 Desktop Navigation -->
+    <div class="navbar-menu desktop">
+      <div class="nav-items">
+        <a
+          *ngFor="let item of navItems"
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="closeMenu()"
+        >
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <ng-container [ngSwitch]="item.icon">
+              <ng-container *ngSwitchCase="'grid'">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </ng-container>
+
+              <ng-container *ngSwitchCase="'share-2'">
+                <circle cx="18" cy="5" r="3"></circle>
+                <circle cx="6" cy="12" r="3"></circle>
+                <circle cx="18" cy="19" r="3"></circle>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+              </ng-container>
+
+              <ng-container *ngSwitchCase="'box'">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="3" y1="9" x2="21" y2="9"></line>
+                <line x1="9" y1="21" x2="9" y2="9"></line>
+              </ng-container>
+
+              <ng-container *ngSwitchCase="'lightbulb'">
+                <path d="M9 18h6v-2a4 4 0 0 0-4-4h0a4 4 0 0 0-4 4v2z"></path>
+                <path d="M9 22h6"></path>
+              </ng-container>
+
+              <ng-container *ngSwitchCase="'compass'">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14
+                           18.18 21.02 12 17.77 5.82 21.02 7 14.14
+                           2 9.27 8.91 8.26 12 2"
+                ></polygon>
+              </ng-container>
+
+              <ng-container *ngSwitchCase="'settings'">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path
+                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2
+                     2 0 1 1-2.83 2.83l-.06-.06a1.65
+                     1.65 0 0 0-1.82-.33 1.65
+                     1.65 0 0 0-1 1.51V21a2
+                     2 0 0 1-4 0v-.09a1.65
+                     1.65 0 0 0-1-1.51 1.65
+                     1.65 0 0 0-1.82.33l-.06.06a2
+                     2 0 1 1-2.83-2.83l.06-.06a1.65
+                     1.65 0 0 0 .33-1.82 1.65
+                     1.65 0 0 0-1.51-1H3a2
+                     2 0 0 1 0-4h.09a1.65
+                     1.65 0 0 0 1.51-1 1.65
+                     1.65 0 0 0-.33-1.82l-.06-.06a2
+                     2 0 1 1 2.83-2.83l.06.06a1.65
+                     1.65 0 0 0 1.82.33h.09A1.65
+                     1.65 0 0 0 9 3.09V3a2
+                     2 0 0 1 4 0v.09a1.65
+                     1.65 0 0 0 1 1.51h.09a1.65
+                     1.65 0 0 0 1.82-.33l.06-.06a2
+                     2 0 1 1 2.83 2.83l-.06.06a1.65
+                     1.65 0 0 0-.33 1.82v.09a1.65
+                     1.65 0 0 0 1.51 1H21a2
+                     2 0 0 1 0 4h-.09a1.65
+                     1.65 0 0 0-1.51 1z"
+                ></path>
+              </ng-container>
+            </ng-container>
+          </svg>
+
+          <span class="nav-label">{{ item.label }}</span>
+          <span *ngIf="item.badge" class="nav-badge">{{ item.badge }}</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- 🔹 Right Actions -->
+    <div class="navbar-actions">
+      <!-- Notifications -->
+      <div class="action-group notifications-wrapper">
+        <button
+          class="action-btn notifications-btn"
+          (click)="toggleNotifications()"
+          [class.active]="notificationsOpen"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span *ngIf="unreadCount > 0" class="notification-badge">{{ unreadCount }}</span>
+        </button>
+
+        <!-- Notifications Dropdown -->
+        <div class="notifications-dropdown" [class.open]="notificationsOpen" *ngIf="notificationsOpen">
+          <div class="dropdown-header">
+            <h3>Notifiche</h3>
+            <button *ngIf="unreadCount > 0" class="mark-all-btn" (click)="markAllAsRead()">
+              Segna come lette
+            </button>
+          </div>
+          <div class="notifications-list">
+            <div
+              *ngFor="let notif of notifications"
+              class="notification-item"
+              [class.unread]="!notif.read"
+              (click)="markAsRead(notif.id)"
+            >
+              <div class="notif-dot" *ngIf="!notif.read"></div>
+              <div class="notif-content">
+                <p class="notif-title">{{ notif.title }}</p>
+                <p class="notif-message">{{ notif.message }}</p>
+                <span class="notif-time">{{ notif.time }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="dropdown-footer">
+            <a routerLink="/notifications" class="view-all-link">Visualizza tutte</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Dropdown -->
+      <div class="action-group user-wrapper">
+        <button
+          class="action-btn user-btn"
+          (click)="toggleDropdown()"
+          [class.active]="dropdownOpen"
+        >
+          <div class="user-avatar">{{ initials }}</div>
+          <span class="user-name">{{ userDisplay }}</span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+
+        <!-- User Dropdown Menu -->
+        <div class="user-dropdown" [class.open]="dropdownOpen" *ngIf="dropdownOpen">
+          <div class="dropdown-header user-info">
+            <div class="user-avatar-large">{{ initials }}</div>
+            <div class="user-details">
+              <p class="user-name-full">{{ userDisplay }}</p>
+              <p class="user-email">{{ currentUser?.email }}</p>
+            </div>
+          </div>
+          <div class="dropdown-divider"></div>
+
+          <a class="dropdown-item" (click)="navigateTo('/profile')">
+            <i class="pi pi-user"></i>
+            <span>Profilo</span>
+          </a>
+
+          <a class="dropdown-item" (click)="navigateTo('/settings')">
+            <i class="pi pi-cog"></i>
+            <span>Impostazioni</span>
+          </a>
+
+          <a class="dropdown-item" (click)="navigateTo('/help')">
+            <i class="pi pi-question-circle"></i>
+            <span>Aiuto & Supporto</span>
+          </a>
+
+          <div class="dropdown-divider"></div>
+
+          <!-- Admin Section -->
+          <div class="dropdown-subtitle">Amministrazione</div>
+          <a class="dropdown-item" (click)="navigateTo('/admin/training')">
+            <i class="pi pi-database"></i>
+            <span>Training</span>
+          </a>
+
+          <div class="dropdown-divider"></div>
+
+          <button class="dropdown-item logout-btn" (click)="logout()">
+            <i class="pi pi-sign-out"></i>
+            <span>Esci</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Toggle -->
+      <button class="hamburger mobile" (click)="toggleMenu()" [class.active]="menuOpen">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 🔹 Mobile Menu -->
+  <div class="navbar-menu mobile" [class.open]="menuOpen">
+    <a
+      *ngFor="let item of navItems"
+      [routerLink]="item.route"
+      routerLinkActive="active"
+      class="mobile-nav-item"
+      (click)="closeMenu()"
+    >
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <ng-container [ngSwitch]="item.icon">
+          <ng-container *ngSwitchCase="'grid'">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </ng-container>
+          <ng-container *ngSwitchCase="'share-2'">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </ng-container>
+          <ng-container *ngSwitchCase="'box'">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          </ng-container>
+          <ng-container *ngSwitchCase="'lightbulb'">
+            <path d="M9 18h6v-2a4 4 0 0 0-4-4h0a4 4 0 0 0-4 4v2z"></path>
+          </ng-container>
+          <ng-container *ngSwitchCase="'compass'">
+            <circle cx="12" cy="12" r="10"></circle>
+          </ng-container>
+          <ng-container *ngSwitchCase="'settings'">
+            <circle cx="12" cy="12" r="3"></circle>
+          </ng-container>
+        </ng-container>
+      </svg>
+      <span>{{ item.label }}</span>
+    </a>
+
+    <a class="mobile-nav-item logout" (click)="logout()">
+      <i class="pi pi-sign-out"></i> <span>Esci</span>
+    </a>
+  </div>
+</nav>

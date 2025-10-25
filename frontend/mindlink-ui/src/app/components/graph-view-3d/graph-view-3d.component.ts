@@ -6,7 +6,9 @@ import ForceGraph3D from '3d-force-graph';
 import * as THREE from 'three';
 import {AsyncPipe, NgIf} from '@angular/common';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import { ApiService, Idea, Connection } from '../../services/api.service';
+import {Idea} from "../../models/idea.model";
+import {Connection} from "../../models/connection.model";
+import {ApiService} from "../../services/api.service";
 
 // Strong Typing
 interface GraphData {

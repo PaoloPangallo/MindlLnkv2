@@ -11,56 +11,69 @@ export class AuthService {
   private refreshKey = 'refresh_token';
   private currentUserSubject = new BehaviorSubject<any>(null);
 
-  constructor(private http: HttpClient) {
-    const token = localStorage.getItem(this.accessKey);
-    if (token && !this.isTokenExpired()) {
+ constructor(private http: HttpClient) {
+  const token = localStorage.getItem(this.accessKey);
+  if (token) {
+    if (this.isTokenExpired()) {
+      this.refreshToken().subscribe();
+    } else {
       this.currentUserSubject.next(this.parseToken(token));
     }
   }
 
-  /** 🔹 Login */
+  // 🔁 Auto-refresh ogni 15 minuti (configurabile)
+  setInterval(() => {
+    const token = localStorage.getItem(this.accessKey);
+    if (token && !this.isTokenExpired()) {
+      console.log('🔄 Refresh periodico token...');
+      this.refreshToken().subscribe();
+    }
+  }, 15 * 60 * 1000); // 15 minuti
+}
+
+
   login(username: string, password: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/login/`, { username, password }).pipe(
-      tap((res: any) => this.handleAuthResponse(res)),
+      tap(res => this.handleAuthResponse(res)),
       catchError(err => throwError(() => this.formatError(err)))
     );
   }
 
-  /** 🔹 Registrazione */
   register(username: string, password: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/register/`, { username, password }).pipe(
-      tap((res: any) => this.handleAuthResponse(res)),
+      tap(res => this.handleAuthResponse(res)),
       catchError(err => throwError(() => this.formatError(err)))
     );
   }
 
-  /** 🔹 Refresh token */
   refreshToken(): Observable<boolean> {
     const refresh = localStorage.getItem(this.refreshKey);
     if (!refresh) return of(false);
 
+    console.log('🔍 Tentativo di refresh token...');
     return this.http.post(`${this.apiUrl}/refresh/`, { refresh }).pipe(
       tap((res: any) => {
         if (res.access) {
+          console.info('🟢 Token aggiornato');
           localStorage.setItem(this.accessKey, res.access);
+          this.currentUserSubject.next(this.parseToken(res.access));
         }
       }),
       switchMap(() => of(true)),
-      catchError(() => {
+      catchError((err) => {
+        console.error('❌ Refresh fallito:', err);
         this.logout();
         return of(false);
       })
     );
   }
 
-  /** 🔹 Logout */
   logout(): void {
     localStorage.removeItem(this.accessKey);
     localStorage.removeItem(this.refreshKey);
     this.currentUserSubject.next(null);
   }
 
-  /** 🔹 Stato login */
   get currentUser$(): Observable<any> {
     return this.currentUserSubject.asObservable();
   }
@@ -69,12 +82,21 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
-  /** 🔹 Token correnti */
   getToken(): string | null {
     return localStorage.getItem(this.accessKey);
   }
 
-  /** 🔹 Parsing JWT */
+  isTokenExpired(): boolean {
+    const token = localStorage.getItem(this.accessKey);
+    if (!token) return true;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return Date.now() >= payload.exp * 1000;
+    } catch {
+      return true;
+    }
+  }
+
   private parseToken(token: string): any {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
@@ -88,26 +110,12 @@ export class AuthService {
     }
   }
 
-  /** 🔹 Verifica scadenza */
-  isTokenExpired(): boolean {
-    const token = localStorage.getItem(this.accessKey);
-    if (!token) return true;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return Date.now() >= payload.exp * 1000;
-    } catch {
-      return true;
-    }
-  }
-
-  /** 🔹 Gestione login/register response */
   private handleAuthResponse(res: any): void {
     localStorage.setItem(this.accessKey, res.access);
     localStorage.setItem(this.refreshKey, res.refresh);
     this.currentUserSubject.next(this.parseToken(res.access));
   }
 
-  /** 🔹 Formattazione errore */
   private formatError(error: any): string {
     if (error.error?.detail) return error.error.detail;
     if (error.status === 401) return 'Credenziali non valide.';

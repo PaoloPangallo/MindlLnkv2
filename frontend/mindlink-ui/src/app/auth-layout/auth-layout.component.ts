@@ -1,36 +1,24 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
-import {MatSnackBar, MatSnackBarModule} from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { Subject, interval, takeUntil } from 'rxjs';
 import { CommonModule } from '@angular/common';
+
 import { AuthService } from '../services/auth.service';
-import { Subject } from 'rxjs';
-
-interface User {
-  username: string;
-  id?: number;
-  email?: string;
-}
-
-
-export enum SnackType {
-  Success = 'snackbar-success',
-  Warning = 'snackbar-warning',
-  Error = 'snackbar-error',
-}
+import { User } from '../models/user.model';
+import { SnackType } from '../utils/snack-type.utils';
+import { NavbarComponent } from '../components/navbar/navbar.component';
 
 @Component({
   selector: 'app-auth-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, MatSnackBarModule],
+  imports: [CommonModule, RouterOutlet, MatSnackBarModule, NavbarComponent],
   templateUrl: './auth-layout.component.html',
   styleUrls: ['./auth-layout.component.scss'],
 })
 export class AuthLayoutComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
   isLoading = false;
-  menuOpen = false;
-
-  private tokenCheckInterval: any;
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -39,106 +27,100 @@ export class AuthLayoutComponent implements OnInit, OnDestroy {
     private snack: MatSnackBar
   ) {}
 
+  // =====================================================
+  // 🔹 Ciclo di vita
+  // =====================================================
   ngOnInit(): void {
-    this.loadCurrentUser();
-    this.startTokenExpirationCheck();
+    this.syncCurrentUser();
+
+    // 🔹 Se il token è scaduto tenta refresh silenzioso
+    if (this.auth.isTokenExpired()) {
+      this.trySilentRefresh();
+    }
+
+    // 🔹 Controllo periodico ogni minuto
+    interval(60000).pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.checkTokenStatus();
+    });
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    if (this.tokenCheckInterval) {
-      clearInterval(this.tokenCheckInterval);
+  }
+
+  // =====================================================
+  // 🔹 Gestione sessione
+  // =====================================================
+
+  /** Aggiorna currentUser dal BehaviorSubject o localStorage */
+  private syncCurrentUser(): void {
+    this.auth.currentUser$.pipe(takeUntil(this.destroy$)).subscribe((user) => {
+      this.currentUser = user;
+    });
+
+    const localUser = this.auth.currentUser;
+    if (!this.currentUser && localUser) {
+      this.currentUser = localUser;
     }
   }
 
-  private loadCurrentUser(): void {
-    const user = this.auth.currentUser;
-    if (user) {
-      this.currentUser = {
-        username: user.username,
-        id: user.id,
-        email: user.email,
-      };
-    }
-  }
-
-private startTokenExpirationCheck(): void {
-  this.tokenCheckInterval = setInterval(() => {
+  /** Controlla token e agisce di conseguenza */
+  private checkTokenStatus(): void {
     if (!this.isLoading && this.auth.isTokenExpired()) {
-      this.handleSessionExpired();
+      this.trySilentRefresh();
     }
-  }, 60000);
-}
+  }
 
+  /** Prova refresh silenzioso prima di disconnettere */
+  private trySilentRefresh(): void {
+    this.isLoading = true;
+    this.auth.refreshToken().subscribe((success) => {
+      this.isLoading = false;
+      if (success) {
+        console.info('🔁 Token aggiornato automaticamente');
+      } else {
+        console.warn('⚠️ Token scaduto, utente disconnesso');
+        this.handleSessionExpired();
+      }
+    });
+  }
 
-private handleSessionExpired(showNotice = true): void {
-  if (showNotice) {
+  /** Mostra messaggio e forza logout */
+  private handleSessionExpired(): void {
     this.showSnackBar(
       '⏰ Sessione scaduta, effettua di nuovo il login.',
       SnackType.Warning,
-      5000
+      4000
     );
+    this.logout();
   }
-  this.logout();
+
+  logout(): void {
+    this.auth.logout();
+    this.currentUser = null;
+    this.showSnackBar(
+      '👋 Disconnessione avvenuta con successo!',
+      SnackType.Success,
+      2500
+    );
+    setTimeout(() => this.router.navigate(['/auth']), 500);
+  }
+
+  // =====================================================
+  // 🔹 Snackbar helper
+  // =====================================================
+
+  private showSnackBar(
+    message: string,
+    type: SnackType,
+    duration = 3000
+  ): void {
+    this.snack.open(message, 'Chiudi', {
+      duration,
+      panelClass: [type],
+      horizontalPosition: 'end',
+      verticalPosition: 'bottom',
+    });
+  }
 }
-
-logout(): void {
-  this.isLoading = true;
-
-  // Logout immediato (sincrono)
-  this.auth.logout();
-
-  this.isLoading = false;
-  this.currentUser = null;
-  this.menuOpen = false;
-
-  this.showSnackBar(
-    '👋 Disconnessione avvenuta con successo!',
-    SnackType.Success,
-    2500
-  );
-
-  setTimeout(() => this.router.navigate(['/auth']), 500);
-}
-
-
-
-  toggleMenu(): void {
-    this.menuOpen = !this.menuOpen;
-  }
-
-  closeMenu(): void {
-    this.menuOpen = false;
-  }
-
-  navigateTo(route: string): void {
-    this.closeMenu();
-    this.router.navigate([route]);
-  }
-
-  private showSnackBar(message: string, type: SnackType = SnackType.Success, duration = 3000) {
-  this.snack.open(message, 'Chiudi', {
-    duration,
-    panelClass: [type],
-    horizontalPosition: 'end',
-    verticalPosition: 'bottom',
-  });
-}
-
-
-  get initials(): string {
-    if (!this.currentUser?.username) return '';
-    return this.currentUser.username
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  }
-
-
-}
-
-
-

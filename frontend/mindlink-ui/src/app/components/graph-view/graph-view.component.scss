@@ -1,274 +1,1033 @@
-// ============================================
-// EPIC GRAPH VIEW - DARK MODE & NEON VIBES
-// ============================================
+/* ================================
+   MindLink — Graph View Enhanced
+   Design: dark–neon, high legibility + premium effects
+   ================================ */
 
-// Variables
-$dark-bg: #0f172a;
-$darker-bg: #0a0f1c;
-$surface: #1a2332;
-$surface-light: #232d3f;
-$border-dark: #2a3a4f;
-$text-primary: #f0f9ff;
-$text-secondary: #cbd5e1;
-$text-muted: #94a3b8;
+/* ---------- Theme Tokens ---------- */
+$bg-0: #0b1220;         // page base
+$bg-1: #0f172a;         // panel base
+$bg-2: #142036;         // elevated
+$ink-0: #f8fafc;        // strongest text
+$ink-1: #e2e8f0;        // body text
+$ink-2: #cbd5e1;        // secondary
+$ink-3: #94a3b8;        // muted
 
-$neon-cyan: #06ffa5;
-$neon-pink: #ff006e;
-$neon-purple: #8338ec;
-$neon-orange: #fb5607;
-$neon-blue: #00d4ff;
+$neon:  #06ffa5;
+$cyan:  #00d4ff;
+$vio:   #7c3aed;
+$pink:  #f72585;
+$warn:  #f97316;
+$err:   #ef4444;
+$ok:    #10b981;
 
-$gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-$gradient-neon: linear-gradient(135deg, #06ffa5 0%, #00d4ff 100%);
-$gradient-dark: linear-gradient(135deg, #0f172a 0%, #1a2332 100%);
+$radius-sm: 8px;
+$radius-md: 12px;
+$radius-lg: 16px;
+$radius-xl: 20px;
+$shadow-sm: 0 4px 12px rgba(0,0,0,.25);
+$shadow-md: 0 12px 32px rgba(0,0,0,.35);
+$shadow-lg: 0 20px 48px rgba(0,0,0,.45);
+$shadow-glow: 0 0 30px rgba(6, 255, 165, .18);
+$shadow-glow-lg: 0 0 50px rgba(6, 255, 165, .25);
 
-$shadow-glow: 0 0 30px rgba(6, 255, 165, 0.1);
-$shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.4);
+$gap-xs: .5rem;
+$gap-sm: .75rem;
+$gap-md: .9rem;
+$gap-lg: 1.25rem;
+$gap-xl: 2rem;
 
-$transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-$transition-fast: all 0.15s ease;
+$transition: 220ms cubic-bezier(.2,.7,.2,1);
+$transition-slow: 350ms cubic-bezier(.4,.0,.2,1);
+
+/* ---------- Mixins ---------- */
+@mixin glass($alpha: .55) {
+  background: rgba(20, 32, 54, $alpha);
+  backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255,255,255,.08);
+}
 
 @mixin flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
-@mixin flex-column {
+@mixin card {
+  @include glass(.6);
+  border-radius: $radius-lg;
+  box-shadow: $shadow-md;
+  position: relative;
+}
+
+@mixin hover-lift {
+  transition: all $transition;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-lg;
+  }
+}
+
+@mixin focus-ring($color: $neon) {
+  &:focus {
+    outline: 0;
+    border-color: rgba($color, .65);
+    box-shadow: 0 0 0 4px rgba($color, .12);
+  }
+}
+
+@mixin gradient-text($from, $to) {
+  background: linear-gradient(135deg, $from, $to);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@mixin animated-gradient($speed: 6s) {
+  background-size: 200% 200%;
+  animation: gradient-shift $speed ease infinite;
+}
+
+/* ---------- Root container ---------- */
+.graph-view-container {
   display: flex;
   flex-direction: column;
-}
+  gap: $gap-xl;
+  padding: clamp(16px, 2vw, 28px);
+  color: $ink-1;
+  background:
+    radial-gradient(1400px 700px at 15% 0%, rgba($cyan, .12), transparent 65%),
+    radial-gradient(1000px 600px at 100% 20%, rgba($neon, .10), transparent 65%),
+    radial-gradient(800px 400px at 50% 100%, rgba($pink, .08), transparent 70%),
+    $bg-0;
+  min-height: 100vh;
+  position: relative;
 
-@mixin glow-effect($color) {
-  box-shadow: 0 0 20px rgba($color, 0.3), 0 0 40px rgba($color, 0.1);
-}
-
-@mixin glass-effect {
-  background: rgba(26, 35, 50, 0.5);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(6, 255, 165, 0.1);
-}
-
-@mixin scrollbar {
-  &::-webkit-scrollbar {
-    width: 8px;
+  // Animated subtle pattern
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 2px, rgba($neon, .015) 2px, rgba($neon, .015) 4px),
+      repeating-linear-gradient(90deg, transparent, transparent 2px, rgba($cyan, .015) 2px, rgba($cyan, .015) 4px);
+    pointer-events: none;
+    opacity: .5;
   }
-  &::-webkit-scrollbar-track {
-    background: transparent;
+}
+
+/* ---------- Header ---------- */
+.main-header {
+  @include card;
+  padding: 22px clamp(18px, 2vw, 32px);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .1);
+  box-shadow: $shadow-lg, inset 0 1px 0 rgba(255, 255, 255, .05);
+
+  // Animated gradient overlay
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(600px 150px at 0% 0%, rgba($neon, .10), transparent 70%),
+      radial-gradient(400px 100px at 100% 0%, rgba($cyan, .08), transparent 70%);
+    pointer-events: none;
+    @include animated-gradient(8s);
   }
-  &::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, $neon-cyan, $neon-purple);
-    border-radius: 4px;
-    &:hover {
-      background: linear-gradient(to bottom, $neon-pink, $neon-cyan);
+
+  // Subtle glow line at top
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, $neon, $cyan, transparent);
+    opacity: .3;
+  }
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $gap-xl;
+  position: relative;
+  z-index: 1;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: $gap-lg;
+  min-width: 0;
+}
+
+.header-icon {
+  @include flex-center;
+  flex: 0 0 56px;
+  height: 56px;
+  border-radius: 15px;
+  color: $bg-1;
+  background: linear-gradient(135deg, $neon 0%, $cyan 100%);
+  box-shadow: $shadow-glow, inset 0 1px 2px rgba(255, 255, 255, .2);
+  position: relative;
+
+  // Pulse animation
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: 17px;
+    background: linear-gradient(135deg, $neon, $cyan);
+    opacity: .4;
+    animation: pulse-ring 3s ease-in-out infinite;
+    z-index: -1;
+  }
+
+  svg {
+    width: 30px;
+    height: 30px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .3));
+  }
+}
+
+.header-text {
+  min-width: 0;
+
+  h1 {
+    margin: 0;
+    font-size: clamp(22px, 2.2vw, 32px);
+    color: $ink-0;
+    letter-spacing: -.4px;
+    font-weight: 900;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, .5);
+    position: relative;
+
+    // Subtle gradient shimmer
+    background: linear-gradient(135deg, $ink-0 0%, rgba($neon, .9) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+
+  .header-subtitle {
+    margin: .4rem 0 0;
+    color: $ink-2;
+    font-weight: 500;
+    font-size: .96rem;
+    letter-spacing: .01em;
+  }
+}
+
+/* Stats - Enhanced */
+.header-stats {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  @include glass(.4);
+  border: 1px solid rgba(255, 255, 255, .1);
+  box-shadow: $shadow-sm, inset 0 1px 0 rgba(255, 255, 255, .05);
+  position: relative;
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 20px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, $neon, transparent);
+      opacity: 0;
+      transition: opacity $transition;
+    }
+
+    &:hover::after {
+      opacity: .6;
+    }
+  }
+
+  .stat-label {
+    font-size: .72rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: $ink-3;
+    font-weight: 700;
+  }
+
+  .stat-value {
+    margin-top: 2px;
+    font-size: 1.5rem;
+    font-weight: 900;
+    @include gradient-text($neon, $cyan);
+    text-shadow: 0 0 20px rgba($neon, .3);
+    letter-spacing: -.02em;
+  }
+}
+
+.stat-divider {
+  width: 2px;
+  height: 38px;
+  background: linear-gradient(180deg, transparent, $neon, $cyan, transparent);
+  opacity: .35;
+  border-radius: 1px;
+}
+
+/* ---------- Layout ---------- */
+.content-wrapper {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: $gap-xl;
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: $gap-xl;
+  min-width: 0;
+}
+
+.form-card {
+  @include card;
+  padding: clamp(18px, 2vw, 26px);
+  border: 1px solid rgba(255, 255, 255, .1);
+  box-shadow: $shadow-lg, inset 0 1px 0 rgba(255, 255, 255, .03);
+  overflow: hidden;
+
+  // Corner accent
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle at top right, rgba($neon, .08), transparent 70%);
+    pointer-events: none;
+  }
+
+  .form-header {
+    margin-bottom: $gap-lg;
+    position: relative;
+    z-index: 1;
+
+    h2 {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      font-size: 1.2rem;
+      font-weight: 900;
+      @include gradient-text($neon, $cyan);
+      letter-spacing: -.02em;
+
+      svg {
+        width: 24px;
+        height: 24px;
+        stroke-width: 2.5;
+        filter: drop-shadow(0 0 8px rgba($neon, .4));
+      }
+    }
+
+    .form-subtitle {
+      margin: .35rem 0 0;
+      color: $ink-2;
+      font-size: .92rem;
+      font-weight: 500;
+    }
+  }
+
+  .idea-form {
+    display: flex;
+    flex-direction: column;
+    gap: $gap-lg;
+    position: relative;
+    z-index: 1;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+  }
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    color: $ink-0;
+    font-size: .84rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+
+    .label-text {
+      color: $ink-0;
+    }
+  }
+
+  .required {
+    color: $err;
+    font-weight: 900;
+  }
+
+  .optional {
+    color: $ink-3;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 1rem 1.1rem;
+    color: $ink-0;
+    background: rgba(11, 18, 32, .7);
+    border: 1.5px solid rgba(255, 255, 255, .1);
+    border-radius: 11px;
+    transition: all $transition;
+    font-size: .96rem;
+    font-weight: 500;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .3);
+
+    &::placeholder {
+      color: rgba($ink-2, .6);
+      font-weight: 400;
+    }
+
+    @include focus-ring($neon);
+
+    &:focus {
+      background: rgba(15, 23, 42, .95);
+      transform: translateY(-1px);
+      box-shadow:
+        0 0 0 4px rgba($neon, .12),
+        0 4px 12px rgba(0, 0, 0, .2);
+    }
+
+    &.error {
+      border-color: rgba($err, .75);
+      box-shadow: 0 0 0 3px rgba($err, .15);
+
+      &:focus {
+        box-shadow: 0 0 0 4px rgba($err, .2);
+      }
+    }
+
+    &:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+  }
+
+  textarea.form-input {
+    resize: vertical;
+    min-height: 130px;
+    line-height: 1.6;
+  }
+
+  .error-text {
+    color: mix($err, #fff, 75%);
+    font-size: .8rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+
+    &::before {
+      content: "⚠";
+      font-size: 1rem;
+    }
+  }
+
+  .helper-text {
+    color: $ink-3;
+    font-size: .8rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+
+    &::before {
+      content: "💡";
+      font-size: .9rem;
+    }
+  }
+
+  .btn {
+    margin-top: .6rem;
+    width: 100%;
+    border: 0;
+    cursor: pointer;
+    padding: 1rem 1.2rem;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: .98rem;
+    letter-spacing: .05em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .7rem;
+    transition: all $transition;
+    position: relative;
+    overflow: hidden;
+
+    // Shimmer effect
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .1), transparent);
+      transition: left .6s;
+    }
+
+    &:hover::before {
+      left: 100%;
+    }
+
+    &.btn-primary {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: #fff;
+      box-shadow:
+        0 10px 28px rgba(99, 102, 241, .35),
+        inset 0 1px 0 rgba(255, 255, 255, .15);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, .3);
+
+      &:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow:
+          0 14px 38px rgba(99, 102, 241, .5),
+          0 0 30px rgba(99, 102, 241, .3),
+          inset 0 1px 0 rgba(255, 255, 255, .15);
+      }
+
+      &:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      &:disabled {
+        opacity: .5;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: 0 10px 28px rgba(99, 102, 241, .2);
+      }
+    }
+
+    .btn-icon {
+      width: 20px;
+      height: 20px;
+      stroke-width: 2.5;
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 3px solid rgba(255, 255, 255, .3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
     }
   }
 }
 
-// ============================================
-// Main Container
-// ============================================
-
-.graph-view-container {
-  @include flex-column;
-  height: 100vh;
-  background: $gradient-dark;
-  color: $text-primary;
-  overflow: hidden;
-}
-
-// ============================================
-// Header
-// ============================================
-
-.header {
-  padding: 2.5rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  box-shadow: 0 10px 40px rgba(102, 126, 234, 0.2);
+/* Info box - Enhanced */
+.info-box {
+  @include card;
+  padding: 1.2rem 1.4rem;
+  border: 1px solid rgba($neon, .15);
+  box-shadow: $shadow-md, inset 0 0 20px rgba($neon, .03);
   position: relative;
   overflow: hidden;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-    pointer-events: none;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, $neon, $cyan);
+    box-shadow: 0 0 10px $neon;
   }
 
-  h1 {
-    margin: 0;
-    font-size: 2.5rem;
+  h3 {
+    margin: 0 0 .8rem;
+    color: $ink-0;
+    font-size: 1.05rem;
     font-weight: 800;
-    letter-spacing: -1px;
+    letter-spacing: .01em;
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+  }
+
+  li {
     position: relative;
-    z-index: 1;
-    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  }
+    padding-left: 1.3rem;
+    color: $ink-1;
+    font-size: .92rem;
+    font-weight: 500;
+    line-height: 1.5;
 
-  .subtitle {
-    margin: 0.75rem 0 0 0;
-    font-size: 1rem;
-    opacity: 0.95;
-    position: relative;
-    z-index: 1;
-  }
-}
+    &::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: $neon;
+      font-weight: 900;
+      text-shadow: 0 0 8px rgba($neon, .5);
+    }
 
-// ============================================
-// Content Wrapper
-// ============================================
-
-.content-wrapper {
-  display: flex;
-  flex: 1;
-  gap: 2rem;
-  padding: 2rem;
-  overflow: hidden;
-}
-
-// ============================================
-// Sidebar
-// ============================================
-
-.sidebar {
-  width: 380px;
-  @include flex-column;
-  overflow-y: auto;
-  @include scrollbar;
-}
-
-.form-card {
-  @include glass-effect;
-  border-radius: 16px;
-  padding: 2rem;
-  @include glow-effect($neon-cyan);
-  transition: $transition-smooth;
-
-  &:hover {
-    @include glow-effect($neon-blue);
-    border-color: rgba(6, 255, 165, 0.2);
-  }
-
-  h2 {
-    @include flex-center;
-    gap: 1rem;
-    margin: 0 0 1.75rem 0;
-    color: $neon-cyan;
-    font-size: 1.5rem;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-
-    .icon {
-      width: 28px;
-      height: 28px;
-      animation: float 3s ease-in-out infinite;
+    &:hover {
+      color: $ink-0;
+      padding-left: 1.5rem;
+      transition: all $transition;
     }
   }
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+/* ---------- Graph area ---------- */
+.graph-main {
+  @include card;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, .1);
+  box-shadow: $shadow-lg, 0 0 40px rgba($neon, .08);
 }
 
-// ============================================
-// Form Styles
-// ============================================
+.graph-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $gap-lg;
+  padding: 16px 22px;
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  background: rgba(10, 16, 28, .65);
+  backdrop-filter: blur(12px);
+  position: relative;
 
-.idea-form {
-  @include flex-column;
-  gap: 0;
-}
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 5%;
+    right: 5%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba($neon, .3), transparent);
+  }
 
-.form-group {
-  margin-bottom: 1.5rem;
-  @include flex-column;
-  gap: 0.75rem;
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
 
-  label {
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: $text-secondary;
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: .5rem .9rem;
+    border: 1px solid rgba($neon, .5);
+    color: $neon;
+    border-radius: 999px;
+    background:
+      linear-gradient(135deg, rgba($neon, .18), rgba($cyan, .16)),
+      rgba(10, 16, 28, .5);
+    font-weight: 800;
+    font-size: .78rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: .08em;
+    box-shadow: 0 0 15px rgba($neon, .15), inset 0 1px 0 rgba(255, 255, 255, .1);
+    text-shadow: 0 0 10px rgba($neon, .5);
+  }
+
+  .toolbar-description {
+    margin: 0;
+    color: $ink-2;
+    font-size: .92rem;
+    font-weight: 500;
+  }
+
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+  }
+
+  .toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .7rem .95rem;
+    border: 1px solid rgba(255, 255, 255, .1);
+    border-radius: 11px;
+    color: $ink-1;
+    background: rgba(12, 20, 34, .6);
+    transition: all $transition;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: .88rem;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .03);
+
+    svg {
+      width: 18px;
+      height: 18px;
+      stroke-width: 2.5;
+      transition: transform $transition;
+    }
+
+    &:hover {
+      border-color: rgba($neon, .6);
+      color: $neon;
+      background: rgba(12, 20, 34, .8);
+      box-shadow:
+        0 0 0 3px rgba($neon, .12),
+        inset 0 1px 0 rgba(255, 255, 255, .05);
+      transform: translateY(-1px);
+
+      svg {
+        transform: scale(1.1);
+      }
+    }
+
+    &.active {
+      border-color: rgba($neon, .8);
+      color: $neon;
+      background: rgba($neon, .1);
+      box-shadow:
+        0 0 20px rgba($neon, .2),
+        inset 0 0 10px rgba($neon, .05);
+    }
   }
 }
 
-.form-input {
-  padding: 0.875rem 1rem;
-  border: 2px solid $border-dark;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-family: inherit;
-  background: rgba(10, 15, 28, 0.5);
-  color: $text-primary;
-  transition: $transition-smooth;
-  backdrop-filter: blur(5px);
+/* Legend - Enhanced */
+.legend {
+  padding: 16px 22px;
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  background: rgba(8, 14, 26, .55);
+  backdrop-filter: blur(12px);
+  position: relative;
 
-  &:focus {
-    outline: none;
-    border-color: $neon-cyan;
-    background: rgba(10, 15, 28, 0.8);
-    box-shadow: 0 0 20px rgba(6, 255, 165, 0.2);
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 5%;
+    right: 5%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba($cyan, .3), transparent);
   }
 
-  &.error {
-    border-color: #ff4757;
-    background: rgba(255, 71, 87, 0.1);
+  h4 {
+    margin: 0 0 1rem;
+    color: $neon;
+    font-weight: 900;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    font-size: .88rem;
+    text-shadow: 0 0 10px rgba($neon, .4);
   }
 
-  &::placeholder {
-    color: $text-muted;
+  .legend-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: .8rem 1rem;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    padding: .4rem .6rem;
+    border-radius: 8px;
+    transition: all $transition;
+
+    &:hover {
+      background: rgba(255, 255, 255, .03);
+      transform: translateX(3px);
+    }
+  }
+
+  .legend-color {
+    width: 18px;
+    height: 18px;
+    border-radius: 6px;
+    box-shadow:
+      0 0 12px currentColor,
+      inset 0 1px 0 rgba(255, 255, 255, .2);
+    border: 1px solid rgba(255, 255, 255, .15);
+  }
+
+  .legend-label {
+    color: $ink-0;
+    font-weight: 600;
+    font-size: .9rem;
   }
 }
 
-textarea.form-input {
-  resize: vertical;
-  line-height: 1.6;
-  min-height: 120px;
+/* Graph container (Sigma mounts here) */
+.graph-container {
+  width: 100%;
+  height: 640px;
+  background:
+    radial-gradient(700px 350px at 30% 30%, rgba($neon, .12), transparent 65%),
+    radial-gradient(700px 350px at 80% 70%, rgba($cyan, .12), transparent 65%),
+    radial-gradient(500px 250px at 50% 50%, rgba($vio, .08), transparent 70%),
+    linear-gradient(135deg, $bg-1, $bg-2);
+  border-radius: $radius-lg;
+  margin: 16px;
+  box-shadow:
+    $shadow-glow-lg,
+    inset 0 1px 0 rgba(255, 255, 255, .02);
+  position: relative;
+
+  // Grid pattern
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 20px, rgba($neon, .02) 20px, rgba($neon, .02) 21px),
+      repeating-linear-gradient(90deg, transparent, transparent 20px, rgba($cyan, .02) 20px, rgba($cyan, .02) 21px);
+    pointer-events: none;
+    opacity: .6;
+  }
+
+  /* Ensure crisp canvas scaling */
+  canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+    border-radius: $radius-lg;
+  }
 }
 
-.error-text {
-  font-size: 0.75rem;
-  color: #ff4757;
-  font-weight: 600;
-}
-
-// ============================================
-// Alert
-// ============================================
-
-.alert {
-  padding: 1rem;
-  border-radius: 8px;
+/* Loading overlay - Enhanced */
+.loading-overlay {
+  position: absolute;
+  inset: 0;
   @include flex-center;
-  gap: 0.875rem;
-  font-size: 0.875rem;
-  margin: 0.75rem 0;
-  border: 2px solid;
-  animation: slideIn 0.3s ease;
+  background: rgba(8, 14, 26, .92);
+  backdrop-filter: blur(8px);
+  z-index: 5;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  color: $ink-0;
+}
+
+.loading-spinner {
+  width: 52px;
+  height: 52px;
+  border: 4px solid rgba($neon, .2);
+  border-top-color: $neon;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  box-shadow:
+    0 0 25px rgba($neon, .35),
+    inset 0 0 15px rgba($neon, .1);
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -8px;
+    border: 2px solid transparent;
+    border-top-color: rgba($cyan, .3);
+    border-radius: 50%;
+    animation: spin 2s linear infinite reverse;
+  }
+}
+
+/* Tooltip - Enhanced */
+.tooltip {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+  @include glass(.98);
+  border-radius: 13px;
+  padding: 14px 16px;
+  box-shadow:
+    $shadow-glow,
+    0 10px 40px rgba(0, 0, 0, .5);
+  border: 1px solid rgba($neon, .5);
+  max-width: 360px;
+  animation: tooltip-enter .25s cubic-bezier(.2, .7, .2, 1);
+
+  .tooltip-title {
+    color: $neon;
+    font-weight: 900;
+    letter-spacing: .01em;
+    font-size: 1.05rem;
+    text-shadow: 0 0 10px rgba($neon, .4);
+    display: block;
+    margin-bottom: .3rem;
+  }
+
+  .tooltip-summary {
+    color: $ink-0;
+    margin: .4rem 0 0;
+    line-height: 1.6;
+    font-size: .92rem;
+    font-weight: 500;
+  }
+
+  .tooltip-category {
+    display: inline-flex;
+    padding: .3rem .7rem;
+    border-radius: 7px;
+    margin-top: .35rem;
+    border: 1px solid rgba($neon, .6);
+    color: $neon;
+    background: rgba($neon, .15);
+    font-size: .75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    box-shadow: 0 0 10px rgba($neon, .2);
+  }
+
+  .tooltip-arrow {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    transform: rotate(45deg);
+    bottom: -6px;
+    left: 20px;
+    background: rgba(20, 32, 54, .98);
+    border-right: 1px solid rgba($neon, .4);
+    border-bottom: 1px solid rgba($neon, .4);
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, .3);
+  }
+}
+
+/* Alerts - Enhanced */
+.alert {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  border-radius: 11px;
+  padding: .9rem 1.1rem;
+  border: 1.5px solid;
+  font-weight: 600;
+  font-size: .92rem;
+  animation: alert-slide-in .3s cubic-bezier(.2, .7, .2, 1);
+  box-shadow: $shadow-sm;
+  position: relative;
+  overflow: hidden;
+
+  // Animated left accent
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: currentColor;
+    box-shadow: 0 0 10px currentColor;
+  }
+
+  svg {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .2));
+  }
+
+  &.alert-success {
+    border-color: rgba($ok, .6);
+    color: mix($ok, #fff, 65%);
+    background:
+      linear-gradient(135deg, rgba($ok, .14), rgba($ok, .10)),
+      rgba(11, 18, 32, .5);
+
+    svg {
+      color: $ok;
+    }
+  }
 
   &.alert-error {
-    background: rgba(255, 71, 87, 0.1);
-    border-color: #ff4757;
-    color: #ff8a96;
-  }
+    border-color: rgba($err, .65);
+    color: mix($err, #fff, 70%);
+    background:
+      linear-gradient(135deg, rgba($err, .14), rgba($err, .10)),
+      rgba(11, 18, 32, .5);
 
-  .alert-icon {
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
+    svg {
+      color: $err;
+    }
   }
 }
 
-@keyframes slideIn {
+/* ---------- Utilities & Animations ---------- */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-ring {
+  0%, 100% {
+    transform: scale(1);
+    opacity: .4;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: .2;
+  }
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes tooltip-enter {
   from {
     opacity: 0;
-    transform: translateX(-10px);
+    transform: translateY(-8px) scale(.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes alert-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
   }
   to {
     opacity: 1;
@@ -276,268 +1035,262 @@ textarea.form-input {
   }
 }
 
-// ============================================
-// Buttons
-// ============================================
-
-.btn {
-  padding: 0.875rem 1.5rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: $transition-smooth;
-  @include flex-center;
-  gap: 0.75rem;
-  width: 100%;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-
-  &.btn-primary {
-    background: $gradient-primary;
-    color: white;
-    position: relative;
-    overflow: hidden;
-
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      transition: left 0.5s ease;
-    }
-
-    &:hover:not(:disabled) {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-
-      &::before {
-        left: 100%;
-      }
-    }
-
-    &:active:not(:disabled) {
-      transform: translateY(-1px);
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+/* Hover glow effect for interactive elements */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba($neon, .2);
   }
-
-  .btn-icon {
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-  }
-
-  .spinner {
-    display: inline-block;
-    width: 18px;
-    height: 18px;
-    border: 3px solid rgba(255, 255, 255, 0.2);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+  50% {
+    box-shadow: 0 0 30px rgba($neon, .35);
   }
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+/* ---------- Custom Scrollbar ---------- */
+.sidebar,
+.form-card {
+  scrollbar-width: thin;
+  scrollbar-color: rgba($neon, .3) transparent;
 
-// ============================================
-// Graph Main
-// ============================================
-
-.graph-main {
-  flex: 1;
-  @include flex-column;
-  background: $surface;
-  border-radius: 16px;
-  overflow: hidden;
-  border: 1px solid rgba(6, 255, 165, 0.1);
-  @include glow-effect($neon-cyan);
-  transition: $transition-smooth;
-
-  &:hover {
-    @include glow-effect($neon-blue);
+  &::-webkit-scrollbar {
+    width: 8px;
   }
-}
 
-.graph-header {
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid rgba(6, 255, 165, 0.1);
-  @include flex-center;
-  justify-content: space-between;
-  background: rgba(10, 15, 28, 0.5);
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
 
-  .graph-info {
-    @include flex-column;
-    gap: 0.5rem;
+  &::-webkit-scrollbar-thumb {
+    background: rgba($neon, .25);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
 
-    p {
-      margin: 0;
-      font-size: 0.9rem;
-      color: $text-muted;
+    &:hover {
+      background: rgba($neon, .4);
+      background-clip: padding-box;
     }
   }
 }
 
-.badge {
-  display: inline-flex;
-  padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, rgba(6, 255, 165, 0.2), rgba(0, 212, 255, 0.2));
-  color: $neon-cyan;
-  border: 1px solid rgba(6, 255, 165, 0.3);
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  width: fit-content;
-}
-
-.graph-container {
-  flex: 1;
-  overflow: hidden;
-  position: relative;
-  background: linear-gradient(135deg, rgba(10, 15, 28, 0.7) 0%, rgba(26, 35, 50, 0.5) 100%);
-  background-image:
-    radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(6, 255, 165, 0.05) 0%, transparent 50%);
-}
-
-// ============================================
-// Tooltip - EPIC
-// ============================================
-
-.tooltip {
-  position: fixed;
-  @include glass-effect;
-  border-radius: 12px;
-  padding: 1.25rem;
-  max-width: 320px;
-  pointer-events: none;
-  z-index: 1000;
-  animation: tooltipSlideIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  @include glow-effect($neon-cyan);
-  border-color: rgba(6, 255, 165, 0.3);
-
-  @keyframes tooltipSlideIn {
-    from {
-      opacity: 0;
-      transform: translateY(-8px) scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
+/* ---------- Responsiveness ---------- */
+@media (max-width: 1400px) {
+  .content-wrapper {
+    grid-template-columns: 360px 1fr;
   }
 
-  .tooltip-content {
-    @include flex-column;
-    gap: 0.75rem;
-  }
-
-  .tooltip-title {
-    font-size: 1rem;
-    font-weight: 800;
-    color: $neon-cyan;
-    word-break: break-word;
-    letter-spacing: -0.3px;
-  }
-
-  .tooltip-category {
-    display: inline-flex;
-    padding: 0.375rem 0.875rem;
-    background: linear-gradient(135deg, rgba(6, 255, 165, 0.2), rgba(0, 212, 255, 0.2));
-    color: $neon-cyan;
-    border: 1px solid rgba(6, 255, 165, 0.4);
-    border-radius: 6px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    width: fit-content;
-  }
-
-  .tooltip-summary {
-    margin: 0;
-    font-size: 0.875rem;
-    color: $text-secondary;
-    line-height: 1.5;
-  }
-
-  .tooltip-arrow {
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    background: rgba(26, 35, 50, 0.9);
-    border: 1px solid rgba(6, 255, 165, 0.2);
-    transform: rotate(45deg);
-    bottom: -5px;
-    left: 20px;
+  .graph-container {
+    height: 600px;
   }
 }
-
-// ============================================
-// Responsive
-// ============================================
 
 @media (max-width: 1200px) {
   .content-wrapper {
-    gap: 1.5rem;
-    padding: 1.5rem;
+    grid-template-columns: 340px 1fr;
   }
 
   .sidebar {
-    width: 340px;
+    gap: $gap-lg;
   }
 
-  .header {
-    padding: 2rem;
+  .graph-container {
+    height: 560px;
+  }
+}
 
-    h1 {
-      font-size: 2rem;
-    }
+@media (max-width: 1024px) {
+  .content-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    order: 2;
+  }
+
+  .graph-main {
+    order: 1;
+  }
+
+  .graph-container {
+    height: 540px;
+  }
+
+  .header-content {
+    flex-wrap: wrap;
+  }
+
+  .header-stats {
+    width: 100%;
+    justify-content: center;
   }
 }
 
 @media (max-width: 768px) {
   .graph-view-container {
-    height: auto;
+    gap: $gap-lg;
+    padding: 16px;
   }
 
-  .header {
-    padding: 1.5rem;
+  .main-header {
+    padding: 18px;
+  }
 
-    h1 {
-      font-size: 1.75rem;
-    }
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $gap-md;
+  }
+
+  .header-stats {
+    width: 100%;
+    justify-content: space-around;
   }
 
   .content-wrapper {
+    gap: $gap-lg;
+  }
+
+  .form-card {
+    padding: 18px;
+  }
+
+  .graph-container {
+    height: 480px;
+    margin: 12px;
+  }
+
+  .legend .legend-items {
+    grid-template-columns: 1fr;
+  }
+
+  .graph-toolbar {
     flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
-  }
+    align-items: stretch;
+    gap: $gap-md;
 
-  .sidebar {
-    width: 100%;
-    max-height: 350px;
-  }
-
-  .graph-main {
-    min-height: 450px;
-  }
-
-  .btn {
-    width: 100%;
+    .toolbar-left,
+    .toolbar-right {
+      justify-content: center;
+    }
   }
 }
+
+@media (max-width: 640px) {
+  .header-icon {
+    flex: 0 0 48px;
+    height: 48px;
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  .header-text h1 {
+    font-size: 20px;
+  }
+
+  .stat-value {
+    font-size: 1.3rem;
+  }
+
+  .graph-container {
+    height: 420px;
+    margin: 10px;
+  }
+
+  .form-card .btn {
+    padding: .85rem 1rem;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+
+  .header-icon::before,
+  .loading-spinner::before {
+    animation: none !important;
+  }
+}
+
+/* ---------- Dark mode adjustments (if needed) ---------- */
+@media (prefers-color-scheme: light) {
+  /* This design is dark-first, but you can add light mode overrides here if needed */
+}
+
+/* ---------- Print styles ---------- */
+@media print {
+  .graph-view-container {
+    background: white;
+    color: black;
+  }
+
+  .sidebar,
+  .graph-toolbar,
+  .legend {
+    display: none;
+  }
+
+  .content-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .graph-container {
+    height: auto;
+    box-shadow: none;
+  }
+}
+
+/* ---------- Accessibility improvements ---------- */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Focus visible for keyboard navigation */
+.form-input:focus-visible,
+.btn:focus-visible,
+.toolbar-btn:focus-visible {
+  outline: 2px solid $neon;
+  outline-offset: 2px;
+}
+
+
+
+/* ---------- Utility classes ---------- */
+.fade-in {
+  animation: tooltip-enter .3s ease-out;
+}
+
+.slide-in {
+  animation: alert-slide-in .3s ease-out;
+}
+
+.glow {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* Selection styling */
+::selection {
+  background: rgba($neon, .3);
+  color: $ink-0;
+}
+
+::-moz-selection {
+  background: rgba($neon, .3);
+  color: $ink-0;
+}
+

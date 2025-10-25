@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: '/api', // proxy in dev
+  apiUrl: 'http://127.0.0.1:8000/api',  // ✅ backend Django completo
 };

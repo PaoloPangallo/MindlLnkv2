@@ -1,11 +1,10 @@
 @use '@angular/material' as mat;
 
-// 1. Definizione palette colori base
+// ========== ANGULAR MATERIAL THEME ==========
 $mindlink-primary: mat.define-palette(mat.$indigo-palette);
 $mindlink-accent: mat.define-palette(mat.$pink-palette, A200, A100, A400);
 $mindlink-warn: mat.define-palette(mat.$red-palette);
 
-// 2. Definizione del tema
 $mindlink-theme: mat.define-light-theme((
   color: (
     primary: $mindlink-primary,
@@ -14,38 +13,39 @@ $mindlink-theme: mat.define-light-theme((
   ),
 ));
 
-// 3. Applica tema globale
 @include mat.all-component-themes($mindlink-theme);
 
-// 4. Stili personalizzati
-body {
-  font-family: Roboto, Arial, sans-serif;
-  margin: 0;
-  background: #fafafa;
+// ========== GLOBAL RESET ==========
+* {
+  box-sizing: border-box;
 }
 
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  font-family: 'Poppins', sans-serif;
+  background: radial-gradient(circle at 30% 20%, #1e293b, #0f172a 70%);
+  color: #f3f4f6;
+  -webkit-font-smoothing: antialiased;
+}
+
+// ========== SNACKBAR COLORS ==========
+.snackbar--success { background: #16a34a !important; color: #fff !important; }
+.snackbar--error { background: #dc2626 !important; color: #fff !important; }
+.snackbar--info { background: #2563eb !important; color: #fff !important; }
+.snackbar--warning { background: #d97706 !important; color: #fff !important; }
+
+// ========== GRAPH CONTAINER ==========
 .graph-container {
   width: 100%;
-  height: 80vh;
-}
-
-
-.snackbar--success {
-  background: #16a34a !important;
-  color: #fff !important;
-}
-
-.snackbar--error {
-  background: #dc2626 !important;
-  color: #fff !important;
-}
-
-.snackbar--info {
-  background: #2563eb !important;
-  color: #fff !important;
-}
-
-.snackbar--warning {
-  background: #d97706 !important;
-  color: #fff !important;
+  height: calc(100vh - 160px); // lascia spazio per header/nav
+  overflow: hidden;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
 }

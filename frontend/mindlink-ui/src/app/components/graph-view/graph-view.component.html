@@ -1,27 +1,84 @@
-<!-- HTML: graph-view.component.html -->
-<div class="graph-view-container">
-  <!-- Header -->
-  <div class="header">
-    <h1>Knowledge Graph</h1>
-    <p class="subtitle">Visualizza e gestisci le tue connessioni tra idee</p>
-  </div>
 
+
+<div class="graph-view-container">
+
+  <app-search-panel></app-search-panel>
+
+
+  <!-- Header Globale -->
+  <header class="main-header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="header-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="1"></circle>
+            <circle cx="19" cy="12" r="1"></circle>
+            <circle cx="5" cy="12" r="1"></circle>
+            <path d="M12 5v2M12 17v2M4.22 4.22l1.41 1.41M18.37 18.37l1.41 1.41"></path>
+          </svg>
+        </div>
+        <div class="header-text">
+          <h1>Grafo Idee Connesse</h1>
+          <p class="header-subtitle">Visualizza e organizza le tue idee in una rete semantica</p>
+        </div>
+      </div>
+
+      <!-- Stats nella header -->
+      <div class="header-stats">
+        <div class="stat-item">
+          <span class="stat-label">Nodi</span>
+          <span class="stat-value">{{ graphStats.totalNodes }}</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-label">Connessioni</span>
+          <span class="stat-value">{{ graphStats.totalEdges }}</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
   <div class="content-wrapper">
     <!-- Sidebar: Idea Form -->
     <aside class="sidebar">
+      <!-- Form Card -->
       <div class="form-card">
-        <h2>
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M12 8v8M8 12h8"></path>
-          </svg>
-          Nuova Idea
-        </h2>
+        <div class="form-header">
+          <h2>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 8v8M8 12h8"></path>
+            </svg>
+            <span>Nuova Idea</span>
+          </h2>
+          <p class="form-subtitle">Aggiungi un nuovo nodo al grafo</p>
+        </div>
 
-<form (ngSubmit)="createIdea()" class="idea-form">
+        <!-- Success Message -->
+        <div *ngIf="showSuccessMessage" class="alert alert-success" [@slideInOut]>
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+          </svg>
+          {{ successMessage }}
+        </div>
+
+        <!-- Error Message -->
+        <div *ngIf="error" class="alert alert-error" [@slideInOut]>
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+          </svg>
+          {{ error }}
+        </div>
+
+        <!-- Form -->
+        <form (ngSubmit)="createIdea()" class="idea-form">
           <!-- Title Input -->
           <div class="form-group">
-            <label for="title">Titolo *</label>
+            <label for="title">
+              <span class="label-text">Titolo</span>
+              <span class="required">*</span>
+            </label>
             <input
               id="title"
               type="text"
@@ -30,23 +87,28 @@
               name="title"
               class="form-input"
               [class.error]="formSubmitted && !newIdea.title?.trim()"
+              [disabled]="isLoading"
             />
             <small *ngIf="formSubmitted && !newIdea.title?.trim()" class="error-text">
-              Il titolo è obbligatorio
+              Il titolo è obbligatorio (minimo 1 carattere)
             </small>
           </div>
 
           <!-- Content Textarea -->
           <div class="form-group">
-            <label for="content">Descrizione *</label>
+            <label for="content">
+              <span class="label-text">Descrizione</span>
+              <span class="required">*</span>
+            </label>
             <textarea
               id="content"
-              placeholder="Descrivi il contenuto della tua idea..."
+              placeholder="Descrivi il contenuto della tua idea in dettaglio..."
               [(ngModel)]="newIdea.content"
               name="content"
               class="form-input"
               rows="5"
               [class.error]="formSubmitted && !newIdea.content?.trim()"
+              [disabled]="isLoading"
             ></textarea>
             <small *ngIf="formSubmitted && !newIdea.content?.trim()" class="error-text">
               La descrizione è obbligatoria
@@ -55,63 +117,112 @@
 
           <!-- Category Input -->
           <div class="form-group">
-            <label for="category">Categoria (opzionale)</label>
+            <label for="category">
+              <span class="label-text">Categoria</span>
+              <span class="optional">(opzionale)</span>
+            </label>
             <input
               id="category"
               type="text"
-              placeholder="Es: Algoritmi, AI, etc."
+              placeholder="Es: Algoritmi, AI, Web, Mobile, Design"
               [(ngModel)]="newIdea.category"
               name="category"
               class="form-input"
+              [disabled]="isLoading"
             />
+            <small class="helper-text">Usa categorie predefinite per colori coerenti</small>
           </div>
 
           <!-- Summary Input -->
           <div class="form-group">
-            <label for="summary">Riassunto (opzionale)</label>
+            <label for="summary">
+              <span class="label-text">Riassunto</span>
+              <span class="optional">(opzionale)</span>
+            </label>
             <input
               id="summary"
               type="text"
-              placeholder="Breve riassunto dell'idea"
+              placeholder="Breve riassunto visibile nel tooltip"
               [(ngModel)]="newIdea.summary"
               name="summary"
               class="form-input"
+              [disabled]="isLoading"
             />
-          </div>
-
-          <!-- Error Message -->
-          <div *ngIf="error" class="alert alert-error">
-            <svg class="alert-icon" viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="12" cy="12" r="10"></circle>
-              <text x="12" y="16" text-anchor="middle" fill="white">!</text>
-            </svg>
-            {{ error }}
+            <small class="helper-text">Max 100 caratteri per una buona leggibilità</small>
           </div>
 
           <!-- Submit Button -->
           <button type="submit" class="btn btn-primary" [disabled]="isLoading">
-            <span *ngIf="!isLoading">
+            <span *ngIf="!isLoading" class="btn-content">
               <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path d="M12 5v14M5 12h14"></path>
               </svg>
-              Aggiungi Idea
+              <span>Aggiungi Idea</span>
             </span>
-            <span *ngIf="isLoading" class="spinner"></span>
+            <span *ngIf="isLoading" class="btn-loading">
+              <span class="spinner"></span>
+              <span>Creazione...</span>
+            </span>
           </button>
         </form>
+      </div>
+
+      <!-- Info Box -->
+      <div class="info-box">
+        <h3>💡 Suggerimenti</h3>
+        <ul>
+          <li>Passa il mouse sui nodi per i dettagli</li>
+          <li>Clicca per selezionare un nodo</li>
+          <li>Usa la rotellina per zoomare</li>
+          <li>Trascina per navigare il grafo</li>
+        </ul>
       </div>
     </aside>
 
     <!-- Main: Graph Visualization -->
     <main class="graph-main">
-      <div class="graph-header">
-        <div class="graph-info">
+      <div class="graph-container" #sigmaContainer></div>
+
+      <!-- Graph Toolbar -->
+      <div class="graph-toolbar">
+        <div class="toolbar-left">
           <span class="badge">Grafo Interattivo</span>
-          <p>Passa il mouse sui nodi per visualizzare i dettagli</p>
+          <p class="toolbar-description">Visualizzazione DAG (Directed Acyclic Graph)</p>
+        </div>
+        <div class="toolbar-right">
+          <button class="toolbar-btn" (click)="toggleLegend()" [class.active]="showLegend" title="Toggle legend">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span>Legenda</span>
+          </button>
         </div>
       </div>
 
-      <div class="graph-container" #cyContainer></div>
+      <!-- Legend -->
+      <div class="legend" *ngIf="showLegend" [@slideInOut]>
+        <h4>Categorie</h4>
+        <div class="legend-items">
+          <div *ngFor="let cat of categoryList" class="legend-item">
+            <div class="legend-color" [style.background-color]="cat.color"></div>
+            <span class="legend-label">{{ cat.name }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-overlay">
+        <div class="loading-content">
+          <div class="loading-spinner"></div>
+          <p>Caricamento grafo...</p>
+        </div>
+      </div>
+
+      <!-- Graph Container -->
+
 
       <!-- Tooltip -->
       <div
@@ -123,7 +234,7 @@
         <div class="tooltip-content">
           <strong class="tooltip-title">{{ tooltip.title }}</strong>
           <span class="tooltip-category" *ngIf="tooltip.category">
-            {{ tooltip.category }}
+            {{ tooltip.category | titlecase }}
           </span>
           <p class="tooltip-summary" *ngIf="tooltip.summary">
             {{ tooltip.summary }}

@@ -1,50 +1,6 @@
-<!-- ============================
-     🧭 NAVBAR
-============================= -->
-<nav class="navbar" *ngIf="auth.currentUser">
-  <div class="nav-left">
-    <h1 class="brand">🧠 MindLink</h1>
-    <span class="welcome">Ciao, <strong>{{ auth.currentUser.username }}</strong> 👋</span>
-  </div>
+<app-navbar *ngIf="auth.currentUser" [currentUser]="auth.currentUser"></app-navbar>
 
-  <div class="nav-right">
-    <button
-      class="switch-btn"
-      [class.active]="!isGraph3D"
-      (click)="switchToGraph2D()"
-      title="Passa alla vista 2D">
-      🪶 2D
-    </button>
 
-    <button
-      class="switch-btn"
-      [class.active]="isGraph3D"
-      (click)="switchToGraph3D()"
-      title="Passa alla vista 3D">
-      🌌 3D
-    </button>
-
-    <button class="logout-btn" (click)="logout()">⎋ Logout</button>
-  </div>
-</nav>
-
-<!-- ============================
-     ✨ WELCOME HERO (solo se loggato e nella home)
-============================= -->
-<section class="welcome" *ngIf="auth.currentUser && showWelcome">
-  <div class="hero">
-    <h2>Benvenuto in <span>MindLink</span></h2>
-    <p>Collega, visualizza e potenzia le tue idee con l’intelligenza artificiale.</p>
-    <div class="cta">
-      <button class="cta-btn" (click)="switchToGraph2D()">🌐 Esplora in 2D</button>
-      <button class="cta-btn" (click)="switchToGraph3D()">🌌 Immergiti in 3D</button>
-    </div>
-  </div>
-</section>
-
-<!-- ============================
-     🧩 VISTE ANGULAR
-============================= -->
 <main>
   <router-outlet></router-outlet>
 </main>

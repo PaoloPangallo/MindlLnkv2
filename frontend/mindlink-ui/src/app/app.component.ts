@@ -27,17 +27,4 @@ export class AppComponent implements OnInit {
         this.showWelcome = event.urlAfterRedirects === '/' || event.urlAfterRedirects === '/graph';
       });
   }
-
-  logout(): void {
-    this.auth.logout();
-    this.router.navigate(['/auth']);
-  }
-
-  switchToGraph3D(): void {
-    this.router.navigate(['/graph3d']);
-  }
-
-  switchToGraph2D(): void {
-    this.router.navigate(['/graph']);
-  }
 }
