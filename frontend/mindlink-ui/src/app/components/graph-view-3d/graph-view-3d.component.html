@@ -1,0 +1,121 @@
+<div class="graph-3d-wrapper">
+  <!-- Header -->
+  <header class="graph-header">
+    <div class="header-content">
+      <h1 class="graph-title">
+        <span class="icon" aria-hidden="true">◆</span>
+        Idea Network
+      </h1>
+      <p class="graph-subtitle">{{ (nodeCount$ | async) }} nodi • {{ (linkCount$ | async) }} connessioni</p>
+    </div>
+    <div class="header-controls" role="group" aria-label="Controlli grafo">
+
+      <button
+        class="control-btn ai-btn"
+        (click)="onRecalculateWeights()"
+        [disabled]="(isLoading$ | async)"
+        aria-label="Ricalcola connessioni semantiche (AI)"
+        title="Ricalcola connessioni semantiche (AI)">
+        <span class="icon" aria-hidden="true">✨</span>
+      </button>
+
+      <button
+        class="control-btn"
+        (click)="toggleAutoRotate()"
+        [class.active]="(autoRotate$ | async)"
+        aria-label="Attiva/Disattiva rotazione automatica"
+        title="Auto-rotate">
+        <span class="icon" aria-hidden="true">⟳</span>
+      </button>
+      <button
+        class="control-btn"
+        (click)="resetCamera()"
+        aria-label="Reimposta vista"
+        title="Reset (Spazio)">
+        <span class="icon" aria-hidden="true">⌖</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Loading Overlay -->
+  <div *ngIf="(isLoading$ | async)" class="overlay-panel loading-panel" role="status" aria-live="polite">
+    <div class="loader">
+      <div class="loader-spinner" aria-hidden="true"></div>
+      <p>Caricamento grafo quantico...</p>
+    </div>
+  </div>
+
+  <!-- Error Overlay -->
+  <div *ngIf="(error$ | async) as error" class="overlay-panel error-panel" role="alert" aria-live="assertive">
+    <div class="error-content">
+      <span class="icon" aria-hidden="true">⚠</span>
+      <p>{{ error }}</p>
+      <button class="retry-btn" (click)="loadGraphData()" aria-label="Riprova caricamento">
+        Riprova
+      </button>
+    </div>
+  </div>
+
+  <!-- Graph Container -->
+  <div #graphContainer class="graph-3d-container" role="region" aria-label="Visualizzazione grafo 3D"></div>
+
+  <!-- Stats Panel -->
+  <aside class="stats-panel" *ngIf="!(isLoading$ | async) && !(error$ | async)" aria-label="Statistiche grafo">
+    <div class="stat-item">
+      <span class="stat-label">Nodi</span>
+      <span class="stat-value">{{ (nodeCount$ | async) }}</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">Link</span>
+      <span class="stat-value">{{ (linkCount$ | async) }}</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">Stato</span>
+      <span class="stat-value active-dot" aria-hidden="true">●</span>
+    </div>
+  </aside>
+
+  <!-- Navigation Hints -->
+  <nav class="navigation-hints" aria-label="Suggerimenti navigazione">
+    <div class="hint-item">
+      <span class="hint-icon" aria-hidden="true">🖱️</span>
+      <span class="hint-text">Drag per ruotare</span>
+    </div>
+    <div class="hint-item">
+      <span class="hint-icon" aria-hidden="true">⬆️</span>
+      <span class="hint-text">Scroll per zoom</span>
+    </div>
+    <div class="hint-item">
+      <span class="hint-icon" aria-hidden="true">✦</span>
+      <span class="hint-text">Click su nodo</span>
+    </div>
+    <div class="hint-item">
+      <span class="hint-icon" aria-hidden="true">⎵</span>
+      <span class="hint-text">Spazio: reset</span>
+    </div>
+  </nav>
+
+  <!-- Legend Panel -->
+  <aside class="legend-panel" aria-label="Legenda connessioni">
+    <h2 class="legend-title">Legenda Connessioni</h2>
+    <div class="legend-item">
+      <div class="legend-color strong" aria-hidden="true"></div>
+      <span>Forte (>80%)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color medium" aria-hidden="true"></div>
+      <span>Media (>50%)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color weak" aria-hidden="true"></div>
+      <span>Debole (<50%)</span>
+    </div>
+  </aside>
+
+  <!-- Performance Monitor -->
+  <div class="performance-monitor" aria-label="Monitor performance FPS">
+    <span class="perf-label">FPS</span>
+   <span class="perf-value">{{ (fpsValue$ | async) }}</span>
+
+  </div>
+</div>

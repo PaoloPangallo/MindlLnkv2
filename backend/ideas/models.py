@@ -19,7 +19,6 @@ class Idea(models.Model):
         return self.title
 
 
-
 class Connection(models.Model):
     source = models.ForeignKey(
         'Idea', related_name='outgoing_connections', on_delete=models.CASCADE
@@ -30,10 +29,6 @@ class Connection(models.Model):
     type = models.CharField(max_length=50, default='related')
     strength = models.FloatField(default=1.0)
     created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.source.title} → {self.target.title} ({self.type})"
-
 
     def __str__(self):
         return f"{self.source.title} → {self.target.title} ({self.type})"

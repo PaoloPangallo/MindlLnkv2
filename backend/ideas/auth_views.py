@@ -5,12 +5,14 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view, permission_classes
 
+from ideas.serializers import RegisterSerializer
+
 
 # === Registrazione ===
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
-    permission_classes = [permissions.AllowAny]   # 👈 Aggiungi questa riga
-
+    serializer_class = RegisterSerializer
+    permission_classes = [permissions.AllowAny]
 
     def post(self, request):
         username = request.data.get("username")
@@ -29,7 +31,7 @@ class RegisterView(generics.CreateAPIView):
             "message": "user created",
             "refresh": str(refresh),
             "access": str(refresh.access_token),
-            "user": {                   # 👈 Aggiunto blocco
+            "user": {
                 "id": user.id,
                 "username": user.username
             }

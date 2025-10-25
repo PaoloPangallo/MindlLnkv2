@@ -23,20 +23,15 @@ class ConnectionSerializer(serializers.ModelSerializer):
 
 # === Idea ===
 class IdeaSerializer(serializers.ModelSerializer):
-    user = serializers.ReadOnlyField(source="user.username")  # mostra solo username
+    user = serializers.ReadOnlyField(source="user.username")
     outgoing_connections = ConnectionSerializer(many=True, read_only=True)
 
     class Meta:
         model = Idea
         fields = [
-            "id",
-            "title",
-            "content",
-            "user",
-            "created_at",
-            "summary",
-            "category",
-            "keywords",
+            "id", "title", "content", "user", "created_at",
+            "summary", "category", "keywords",
+            "embedding", "used_for_training",
             "outgoing_connections",
         ]
 
@@ -48,11 +43,20 @@ class IdeaSerializer(serializers.ModelSerializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
+    email = serializers.EmailField(required=False, allow_blank=True)
+
     class Meta:
         model = User
-        fields = ["id", "username", "password"]
+        fields = ["id", "username", "email", "password"]
+
     def create(self, validated_data):
-        return User.objects.create_user(**validated_data)
+        user = User.objects.create_user(
+            username=validated_data["username"],
+            email=validated_data.get("email", ""),
+            password=validated_data["password"]
+        )
+        return user
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

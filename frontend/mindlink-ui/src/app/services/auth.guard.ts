@@ -7,12 +7,13 @@ import {
   RouterStateSnapshot
 } from '@angular/router';
 import { Observable, of } from 'rxjs';
-import {AuthService} from "./auth.service";
+import { catchError, map, switchMap } from 'rxjs/operators';
+import { AuthService } from './auth.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AuthGuard implements CanActivate {
+  private isRefreshing = false;
+
   constructor(private auth: AuthService, private router: Router) {}
 
   canActivate(
@@ -21,32 +22,38 @@ export class AuthGuard implements CanActivate {
   ): Observable<boolean | UrlTree> {
     const token = this.auth.getToken();
 
-    // 🔹 Caso 1: utente non loggato
+    // 🔹 Caso 1: Nessun token → reindirizza subito al login
     if (!token) {
       return of(this.router.createUrlTree(['/auth']));
     }
 
-    // 🔹 Caso 2: token scaduto → tenta refresh silenzioso
+    // 🔹 Caso 2: Token scaduto → tenta refresh silenzioso
     if (this.auth.isTokenExpired()) {
-      return new Observable((observer) => {
-        this.auth.refreshToken().subscribe({
-          next: (success) => {
-            if (success) {
-              observer.next(true);
-            } else {
-              observer.next(this.router.createUrlTree(['/auth']));
-            }
-            observer.complete();
-          },
-          error: () => {
-            observer.next(this.router.createUrlTree(['/auth']));
-            observer.complete();
+      if (this.isRefreshing) {
+        // Previene doppio refresh se due route scattano insieme
+        return of(false);
+      }
+
+      this.isRefreshing = true;
+      return this.auth.refreshToken().pipe(
+        map((success) => {
+          this.isRefreshing = false;
+          if (success) {
+            console.info('🔁 Token aggiornato automaticamente.');
+            return true;
           }
-        });
-      });
+          console.warn('⚠️ Refresh fallito. Redireziono al login.');
+          return this.router.createUrlTree(['/auth']);
+        }),
+        catchError(() => {
+          this.isRefreshing = false;
+          this.auth.logout();
+          return of(this.router.createUrlTree(['/auth']));
+        })
+      );
     }
 
-    // 🔹 Caso 3: token valido → consenti l’accesso
+    // 🔹 Caso 3: Token valido → accesso consentito
     return of(true);
   }
 }

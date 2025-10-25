@@ -28,3 +28,24 @@ body {
   width: 100%;
   height: 80vh;
 }
+
+
+.snackbar--success {
+  background: #16a34a !important;
+  color: #fff !important;
+}
+
+.snackbar--error {
+  background: #dc2626 !important;
+  color: #fff !important;
+}
+
+.snackbar--info {
+  background: #2563eb !important;
+  color: #fff !important;
+}
+
+.snackbar--warning {
+  background: #d97706 !important;
+  color: #fff !important;
+}

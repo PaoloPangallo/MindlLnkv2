@@ -89,7 +89,7 @@ Thumbs.db
 *.sublime-project
 *.sublime-workspace
 
-# Python virtual environment per sicurezza
+# Python virtual environments per sicurezza
 pip-wheel-metadata/
 __pypackages__/
 

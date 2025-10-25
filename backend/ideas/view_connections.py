@@ -1,10 +1,22 @@
-from rest_framework import viewsets
+# view_connections.py (Rifattorizzato)
+
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .models import Connection, Idea
 from .serializers import ConnectionSerializer
+import logging
+
+# Importa la nuova funzione di alto livello dal core
+from .analyze import recalculate_semantic_connections
+
+logger = logging.getLogger(__name__)
+
 
 class ConnectionViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+
     """
     ViewSet per gestire connessioni manuali e semantiche.
     """
@@ -14,7 +26,8 @@ class ConnectionViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["post"])
     def connect(self, request):
         """
-        Crea una connessione manuale tra due idee (POST /api/connect/)
+        Crea una connessione manuale tra due idee.
+        (Questa funzione era già corretta e non usa AI).
         """
         source_id = request.data.get("source_id")
         target_id = request.data.get("target_id")
@@ -22,16 +35,25 @@ class ConnectionViewSet(viewsets.ModelViewSet):
         ctype = request.data.get("type", "manual")
 
         if not source_id or not target_id:
-            return Response({"error": "source_id and target_id required"}, status=400)
+            return Response(
+                {"error": "source_id and target_id required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         if source_id == target_id:
-            return Response({"error": "Cannot connect an idea to itself."}, status=400)
+            return Response(
+                {"error": "Cannot connect an idea to itself."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             source = Idea.objects.get(id=source_id)
             target = Idea.objects.get(id=target_id)
         except Idea.DoesNotExist:
-            return Response({"error": "One or both ideas not found."}, status=404)
+            return Response(
+                {"error": "One or both ideas not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         connection, created = Connection.objects.get_or_create(
             source=source,
@@ -50,51 +72,26 @@ class ConnectionViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(connection)
         return Response({"message": message, "connection": serializer.data})
 
-
-@action(detail=False, methods=["post"])
-def auto_weight(self, request):
-    """
-    Calcola e aggiorna automaticamente i pesi (strength) e i tipi ("semantic_strong"/"semantic_weak")
-    delle connessioni tra idee in base alla similarità semantica.
-    """
-    from .embeddings import generate_embedding
-    from .similarity import find_similar_ideas
-
-    ideas = list(Idea.objects.all())
-    if len(ideas) < 2:
-        return Response({"error": "Servono almeno due idee per calcolare connessioni."}, status=400)
-
-    # Calcola embedding per tutte le idee
-    embeddings = [generate_embedding(i.content) for i in ideas]
-    new_connections = 0
-    updated_connections = 0
-
-    for i, source in enumerate(ideas):
-        idx, sims = find_similar_ideas(embeddings[i], embeddings)
-        for k, target_idx in enumerate(idx):
-            if source.id == ideas[target_idx].id:
-                continue  # evita self-loop
-
-            sim = float(sims[k])
-            if sim < 0.6:
-                continue  # ignora connessioni debolissime
-
-            ctype = "semantic_strong" if sim >= 0.85 else "semantic_weak"
-
-            conn, created = Connection.objects.update_or_create(
-                source=source,
-                target=ideas[target_idx],
-                defaults={"strength": sim, "type": ctype},
+    @action(detail=False, methods=["post"])
+    def auto_weight(self, request):
+        """
+        [CORRETTO] Calcola e aggiorna *tutte* le connessioni semantiche
+        usando gli embedding PRE-CALCOLATI dal database.
+        """
+        logger.info("Avvio ricalcolo connessioni semantiche...")
+        try:
+            # 1. Delega tutta la logica pesante al core
+            # Definiamo soglie qui
+            stats = recalculate_semantic_connections(
+                min_threshold=0.6,  # Ignora connessioni sotto questa soglia
+                strong_threshold=0.85  # Definisce una connessione "forte"
             )
 
-            if created:
-                new_connections += 1
-            else:
-                updated_connections += 1
+            return Response(stats)
 
-    return Response({
-        "message": "✅ Connessioni semantiche aggiornate",
-        "new": new_connections,
-        "updated": updated_connections
-    })
-
+        except Exception as e:
+            logger.error(f"Errore in auto_weight: {e}")
+            return Response(
+                {"error": "Errore interno durante il ricalcolo delle connessioni."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

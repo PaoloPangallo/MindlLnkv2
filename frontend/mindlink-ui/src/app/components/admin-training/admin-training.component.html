@@ -1,5 +1,86 @@
-<div class="training-admin">
-  <h2>⚙️ Training Istantaneo</h2>
-  <button mat-raised-button color="primary" (click)="start()">Avvia Training</button>
-  <pre>{{ log }}</pre>
+<div class="admin-card">
+  <header class="admin-card__header">
+    <div class="titles">
+      <h2>Configurazione Training</h2>
+      <p class="subtitle">
+        Avvia il fine-tuning istantaneo del modello con aggiornamento semantico
+      </p>
+    </div>
+
+    <div class="status">
+      <span
+        class="chip"
+        [ngClass]="{
+          'chip--ok': state === 'success',
+          'chip--err': state === 'failure',
+          'chip--info': state === 'pending'
+        }"
+        role="status"
+        [attr.aria-label]="stateLabel">
+        {{ stateLabel }}
+      </span>
+    </div>
+  </header>
+
+  <div class="admin-card__actions">
+    <button
+      class="btn"
+      (click)="initiateTraining()"
+      [disabled]="isLoading"
+      [attr.aria-busy]="isLoading"
+      aria-label="Avvia il training istantaneo">
+      <span class="spinner" *ngIf="isLoading" aria-hidden="true"></span>
+      <span>{{ isLoading ? 'Training in corso…' : 'Avvia Training' }}</span>
+    </button>
+  </div>
+
+  <!-- Progress bar indicatore -->
+  <div class="progress" [class.progress--active]="isLoading" role="progressbar" [attr.aria-valuenow]="progress">
+    <div class="progress__bar" [style.right.%]="100 - progress"></div>
+  </div>
+
+  <!-- Messaggio di stato -->
+  <div class="message" *ngIf="statusMessage" role="alert">
+    <span [ngSwitch]="state">
+      <span *ngSwitchCase="'success'">✓</span>
+      <span *ngSwitchCase="'failure'">✕</span>
+      <span *ngSwitchDefault>ℹ</span>
+    </span>
+    {{ statusMessage }}
+  </div>
+
+  <!-- Timeline e dettagli -->
+  <section class="log-panel" *ngIf="logs.length > 0">
+    <div class="log-panel__header">
+      <div>
+        <h3>Log di esecuzione</h3>
+        <span class="log-count">{{ logs.length }} evento/i</span>
+      </div>
+      <button
+        class="link"
+        (click)="clearLogs()"
+        [disabled]="isLoading"
+        aria-label="Cancella i log">
+        Svuota
+      </button>
+    </div>
+    <pre
+      class="log-panel__body"
+      role="log"
+      aria-live="polite"
+      aria-label="Log dell'esecuzione del training">{{ formattedLogs }}</pre>
+  </section>
+
+  <!-- Stato vuoto -->
+  <section class="log-panel" *ngIf="logs.length === 0">
+    <div class="log-panel__header">
+      <h3>Log di esecuzione</h3>
+    </div>
+    <pre class="log-panel__body log-panel__body--empty">— nessun evento registrato —</pre>
+  </section>
+
+  <!-- Footer: durata -->
+  <div class="training-footer" *ngIf="duration > 0">
+    <span class="duration-badge">Durata: {{ (duration / 1000) | number: '1.2-2' }}s</span>
+  </div>
 </div>

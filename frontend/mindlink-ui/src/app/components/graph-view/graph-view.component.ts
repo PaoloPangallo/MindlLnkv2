@@ -1,4 +1,11 @@
-import { Component, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ElementRef,
+  ViewChild,
+  NgZone,
+} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -7,6 +14,9 @@ import cytoscapeDagre from 'cytoscape-dagre';
 
 cytoscape.use(cytoscapeDagre);
 
+// ======================
+// 🔹 Interfaces
+// ======================
 interface Connection {
   id: number;
   source: number;
@@ -32,6 +42,9 @@ interface TooltipData {
   summary: string;
 }
 
+// ======================
+// 🔹 Component
+// ======================
 @Component({
   selector: 'app-graph-view',
   templateUrl: './graph-view.component.html',
@@ -39,32 +52,38 @@ interface TooltipData {
 })
 export class GraphViewComponent implements OnInit, OnDestroy {
   @ViewChild('cyContainer', { static: true }) cyContainer!: ElementRef;
+  private cy!: Core;
 
-  cy!: Core;
+  // Stato UI
   isLoading = false;
   error: string | null = null;
+  selectedNodeId: string | null = null;
+
+  // Tooltip
+  tooltip: TooltipData = { visible: false, x: 0, y: 0, title: '', category: '', summary: '' };
+
+  // Nuova idea
+  newIdea: Partial<Idea> = { title: '', content: '', category: '', summary: '' };
   formSubmitted = false;
 
-  tooltip: TooltipData = {
-    visible: false,
-    x: 0,
-    y: 0,
-    title: '',
-    category: '',
-    summary: '',
+  // Destroy notifier
+  private readonly destroy$ = new Subject<void>();
+
+  // Tavolozze di colore
+  private readonly categoryColors: Record<string, string> = {
+    algoritmi: '#00d4ff',
+    ai: '#ff006e',
+    web: '#8338ec',
+    mobile: '#ff006e',
+    design: '#fb5607',
+    default: '#06ffa5',
   };
 
-  newIdea: Partial<Idea> = {
-    title: '',
-    content: '',
-    category: '',
-    summary: ''
-  };
+  constructor(private http: HttpClient, private zone: NgZone) {}
 
-  private destroy$ = new Subject<void>();
-
-  constructor(private http: HttpClient) {}
-
+  // ======================
+  // ⚙️ Lifecycle
+  // ======================
   ngOnInit(): void {
     this.loadGraphData();
   }
@@ -72,42 +91,61 @@ export class GraphViewComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    if (this.cy) this.cy.destroy();
+    this.cy?.destroy();
   }
 
+  // ======================
+  // 📡 API e gestione dati
+  // ======================
   createIdea(): void {
     this.formSubmitted = true;
 
     if (!this.isFormValid()) {
-      this.error = 'Compilare tutti i campi obbligatori';
+      this.error = 'Compila tutti i campi obbligatori';
       return;
     }
 
     this.isLoading = true;
-    this.error = null;
-
     this.http
       .post<Idea>('/api/ideas/', this.newIdea)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
           this.resetForm();
-          this.isLoading = false;
           this.loadGraphData();
         },
         error: (err) => {
-          console.error('Errore creazione idea:', err);
-          this.error = 'Errore nella creazione dell\'idea';
+          console.error('❌ Errore creazione idea:', err);
+          this.error = 'Errore nella creazione dell’idea';
           this.isLoading = false;
         },
       });
   }
 
+  private loadGraphData(): void {
+    this.isLoading = true;
+    this.http
+      .get<Idea[]>('/api/ideas/')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (ideas) => {
+          const elements = this.buildGraphElements(ideas);
+          this.initCytoscape(elements);
+          this.isLoading = false;
+        },
+        error: (err) => {
+          console.error('❌ Errore caricamento grafo:', err);
+          this.error = 'Errore nel caricamento del grafo';
+          this.isLoading = false;
+        },
+      });
+  }
+
+  // ======================
+  // 🧠 Helpers
+  // ======================
   private isFormValid(): boolean {
-    return (
-      this.newIdea.title?.trim().length! > 0 &&
-      this.newIdea.content?.trim().length! > 0
-    );
+    return Boolean(this.newIdea.title?.trim() && this.newIdea.content?.trim());
   }
 
   private resetForm(): void {
@@ -116,59 +154,42 @@ export class GraphViewComponent implements OnInit, OnDestroy {
     this.error = null;
   }
 
-  private loadGraphData(): void {
-    this.isLoading = true;
-
-    this.http
-      .get<Idea[]>('/api/ideas/')
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (ideas) => {
-          this.error = null;
-          this.isLoading = false;
-          const elements = this.buildGraphElements(ideas);
-          this.initCytoscape(elements);
-        },
-        error: (err) => {
-          console.error('Errore caricamento grafo:', err);
-          this.error = 'Errore nel caricamento del grafo';
-          this.isLoading = false;
-        },
-      });
+  private getNodeColor(category: string): string {
+    return this.categoryColors[category.toLowerCase()] || this.categoryColors['default'];
   }
 
   private buildGraphElements(ideas: Idea[]): ElementDefinition[] {
-  return ideas.flatMap((idea) => {
-    const node: ElementDefinition = {
-      data: {
-        id: `idea-${idea.id}`,
-        label: idea.title,
-        summary: idea.summary || '',
-        category: idea.category || '',
-      },
-      classes: this.getNodeClasses(idea.category),
-    };
+    return ideas.flatMap((idea) => {
+      const node: ElementDefinition = {
+        data: {
+          id: `idea-${idea.id}`,
+          label: idea.title,
+          summary: idea.summary ?? '',
+          category: idea.category ?? 'default',
+        },
+        classes: [idea.category?.toLowerCase() || 'default'],
+      };
 
-    const edges = (idea.outgoing_connections || []).map((conn) => ({
-      data: {
-        id: `conn-${conn.id}`,
-        source: `idea-${conn.source}`,
-        target: `idea-${conn.target}`,
-        label: conn.type || '',
-      },
-    }));
+      const edges = (idea.outgoing_connections ?? []).map((conn) => ({
+        data: {
+          id: `conn-${conn.id}`,
+          source: `idea-${conn.source}`,
+          target: `idea-${conn.target}`,
+          label: conn.type ?? '',
+        },
+      }));
 
-    return [node, ...edges];
-  });
-}
-
-
-  private getNodeClasses(category?: string): string[] {
-    return category ? [category.toLowerCase()] : [];
+      return [node, ...edges];
+    });
   }
 
+  // ======================
+  // 🎨 Inizializzazione Cytoscape
+  // ======================
   private initCytoscape(elements: ElementDefinition[]): void {
-    if (this.cy) this.cy.destroy();
+    this.cy?.destroy();
+
+    const nodeColor = (node: any) => this.getNodeColor(node.data('category'));
 
     this.cy = cytoscape({
       container: this.cyContainer.nativeElement,
@@ -176,109 +197,134 @@ export class GraphViewComponent implements OnInit, OnDestroy {
       layout: {
         name: 'dagre',
         rankDir: 'LR',
-        spacingFactor: 1.2,
-        nodeSep: 50,
-        rankSep: 100,
+        spacingFactor: 1.4,
+        nodeSep: 80,
+        rankSep: 140,
       } as any,
-      style: [
-        {
-          selector: 'node',
-          style: {
-            'background-color': '#3b82f6',
-            label: 'data(label)',
-            color: '#fff',
-            'text-valign': 'center',
-            'text-halign': 'center',
-            'font-size': '12px',
-            'font-weight': 'bold',
-            'text-outline-width': 2,
-            'text-outline-color': '#1e3a8a',
-            width: '120px',
-            height: '60px',
-            'border-width': 2,
-            'border-color': '#1e3a8a',
-          },
-        },
-        {
-  selector: 'node:hover',
-  style: {
-    'background-color': '#2563eb',
-    'overlay-color': '#3b82f6',
-    'overlay-opacity': 0.25,
-    'overlay-padding': 8,
-  },
-},
-
-
-        {
-  selector: 'node.selected',
-  style: {
-    'background-color': '#1e40af',
-    'overlay-color': '#1e40af',
-    'overlay-opacity': 0.4,
-    'overlay-padding': 10,
-  },
-},
-
-        {
-          selector: 'edge',
-          style: {
-            width: 2.5,
-            'line-color': '#9ca3af',
-            'target-arrow-color': '#9ca3af',
-            'target-arrow-shape': 'triangle',
-            'curve-style': 'bezier',
-            label: 'data(label)',
-            'font-size': '11px',
-            color: '#6b7280',
-            'text-background-color': '#fff',
-            'text-background-opacity': 0.8,
-            'text-background-padding': '2px',
-          },
-        },
-        {
-          selector: 'edge:hover',
-          style: {
-            'line-color': '#3b82f6',
-            'target-arrow-color': '#3b82f6',
-            width: 3,
-          },
-        },
-      ],
+      style: this.getGraphStyle(nodeColor),
+      wheelSensitivity: 0.25,
+      boxSelectionEnabled: false,
+      autoungrabify: false,
+      userZoomingEnabled: true,
+      userPanningEnabled: true,
     });
 
     this.setupEventHandlers();
   }
 
+  // ======================
+  // 🧩 Stile modulare (resta nel TS ma compatto)
+  // ======================
+  private getGraphStyle(nodeColor: (node: any) => string): cytoscape.StylesheetCSS[] {
+  return [
+    {
+      selector: 'node',
+      css: {
+        'background-color': (node: any) => nodeColor(node),
+        'border-color': (node: any) => nodeColor(node),
+        'border-width': 2.5,
+        width: 130,
+        height: 70,
+        'background-opacity': 0.95,
+        label: 'data(label)',
+        color: '#fff',
+        'font-weight': 600,
+        'font-size': '13px',
+        'text-valign': 'center',
+        'text-halign': 'center',
+        'text-outline-width': 2,
+        'text-outline-color': '#000',
+      } as any, // 👈 necessario per permettere le funzioni dinamiche
+    },
+    {
+      selector: 'node:hover',
+      css: {
+        'background-opacity': 1,
+        width: 150,
+        height: 80,
+        'border-width': 3,
+      } as any,
+    },
+    {
+      selector: 'node.selected',
+      css: {
+        width: 150,
+        height: 80,
+        'border-width': 3.5,
+        'border-color': '#06ffa5',
+      } as any,
+    },
+    {
+      selector: 'edge',
+      css: {
+        width: 2,
+        'line-color': '#475569',
+        'target-arrow-color': '#475569',
+        'target-arrow-shape': 'triangle',
+        'curve-style': 'bezier',
+        label: 'data(label)',
+        'font-size': '11px',
+        color: '#94a3b8',
+        'text-background-color': '#0f172a',
+        'text-background-opacity': 0.9,
+        'text-background-padding': 4,
+        opacity: 0.75,
+      } as any,
+    },
+    {
+      selector: 'edge:hover',
+      css: {
+        'line-color': '#06ffa5',
+        'target-arrow-color': '#06ffa5',
+        width: 3,
+        opacity: 1,
+      } as any,
+    },
+  ];
+}
+
+
+
+
+
+  // ======================
+  // 🖱️ Eventi utente
+  // ======================
   private setupEventHandlers(): void {
+    // Tooltip hover
     this.cy.on('mouseover', 'node', (event) => {
       const node = event.target;
       const rect = this.cyContainer.nativeElement.getBoundingClientRect();
 
-      this.tooltip = {
-        visible: true,
-        x: event.renderedPosition.x + rect.left + 10,
-        y: event.renderedPosition.y + rect.top + 10,
-        title: node.data('label'),
-        category: node.data('category'),
-        summary: node.data('summary'),
-      };
+      this.zone.run(() => {
+        this.tooltip = {
+          visible: true,
+          x: event.renderedPosition.x + rect.left + 15,
+          y: event.renderedPosition.y + rect.top + 15,
+          title: node.data('label'),
+          category: node.data('category'),
+          summary: node.data('summary'),
+        };
+      });
     });
 
     this.cy.on('mouseout', 'node', () => {
-      this.tooltip.visible = false;
+      this.zone.run(() => (this.tooltip.visible = false));
     });
 
+    // Selezione nodo
     this.cy.on('tap', 'node', (event) => {
       this.cy.elements().removeClass('selected');
       event.target.addClass('selected');
+      this.selectedNodeId = event.target.id();
     });
 
+    // Click su vuoto → deselezione
     this.cy.on('tap', (evt) => {
-  const target = evt.target;
-  if (target === this.cy || !target.isNode()) {
-    this.cy.elements().removeClass('selected');
-  }
-});
+      if (evt.target === this.cy) {
+        this.cy.elements().removeClass('selected');
+        this.selectedNodeId = null;
+      }
+    });
   }
 }

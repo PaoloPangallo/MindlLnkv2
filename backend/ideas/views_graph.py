@@ -1,22 +1,27 @@
-from rest_framework.decorators import api_view
+# ideas/views_graph.py
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .models import Idea, Connection
 
+
 @api_view(["GET"])
+@permission_classes([IsAuthenticated])  # ✅ Accesso solo utenti loggati
 def get_map(request):
     """
-    Restituisce il grafo completo: nodi (idee) e archi (connessioni)
+    🔹 Restituisce il grafo completo delle idee e connessioni.
+    Formato compatibile con librerie di visualizzazione (Cytoscape, ForceGraph3D, ecc.)
     """
-    ideas = Idea.objects.all()
-    connections = Connection.objects.all()
+    ideas = Idea.objects.exclude(embedding=None)
+    connections = Connection.objects.select_related("source", "target").all()
 
     nodes = [
         {
             "data": {
                 "id": str(idea.id),
                 "label": idea.title,
-                "category": idea.category,
-                "summary": idea.summary,
+                "category": idea.category or "non classificata",
+                "summary": idea.summary or "",
             }
         }
         for idea in ideas
@@ -35,5 +40,10 @@ def get_map(request):
         for conn in connections
     ]
 
-    graph = {"nodes": nodes, "edges": edges}
-    return Response(graph)
+    meta = {
+        "total_nodes": len(nodes),
+        "total_edges": len(edges),
+        "generated_by": "MindLink API",
+    }
+
+    return Response({"meta": meta, "graph": {"nodes": nodes, "edges": edges}})

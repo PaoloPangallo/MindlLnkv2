@@ -1,6 +1,21 @@
+// src/app/services/api.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import {environment} from "../../environments/environment";
+
+// === INTERFACCE ===
+export interface Connection {
+  id?: number;
+  source: number;
+  target: number;
+  type?: string;
+  strength?: number;
+  created_at?: string;
+  source_title?: string;
+  target_title?: string;
+}
 
 export interface Idea {
   id?: number;
@@ -10,51 +25,103 @@ export interface Idea {
   category?: string;
   keywords?: string[];
   created_at?: string;
+  user?: string;
+  outgoing_connections?: Connection[];
 }
 
-export interface Connection {
-  id?: number;
-  source: number;
-  target: number;
-  type?: string;
-  strength?: number;
-  created_at?: string;
+export interface SimilarIdea {
+  id: number;
+  title: string;
+  summary: string;
+  category: string;
+  similarity: number;
 }
 
+// === SERVIZIO PRINCIPALE ===
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  private baseUrl = '/api'; // Proxy handle → Django backend
+  private baseUrl = environment.apiUrl || '/api';
 
   constructor(private http: HttpClient) {}
 
-  // === IDEAS ===
+  // =====================================================
+  // 🔹 IDEAS CRUD
+  // =====================================================
   getIdeas(): Observable<Idea[]> {
-    return this.http.get<Idea[]>(`${this.baseUrl}/ideas/`);
+    return this.http.get<Idea[]>(`${this.baseUrl}/ideas/`).pipe(catchError(this.handleError));
+  }
+
+  getIdea(id: number): Observable<Idea> {
+    return this.http.get<Idea>(`${this.baseUrl}/ideas/${id}/`).pipe(catchError(this.handleError));
   }
 
   createIdea(idea: Partial<Idea>): Observable<Idea> {
-    return this.http.post<Idea>(`${this.baseUrl}/ideas/`, idea);
+    return this.http.post<Idea>(`${this.baseUrl}/ideas/`, idea).pipe(catchError(this.handleError));
   }
 
-  // === CONNECTIONS ===
+  updateIdea(id: number, idea: Partial<Idea>): Observable<Idea> {
+    return this.http.patch<Idea>(`${this.baseUrl}/ideas/${id}/`, idea).pipe(catchError(this.handleError));
+  }
+
+  deleteIdea(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/ideas/${id}/`).pipe(catchError(this.handleError));
+  }
+
+  // =====================================================
+  // 🔹 CONNECTIONS CRUD
+  // =====================================================
   getConnections(): Observable<Connection[]> {
-    return this.http.get<Connection[]>(`${this.baseUrl}/connections/`);
+    return this.http.get<Connection[]>(`${this.baseUrl}/connections/`).pipe(catchError(this.handleError));
   }
 
   createConnection(conn: Partial<Connection>): Observable<Connection> {
-    return this.http.post<Connection>(`${this.baseUrl}/connections/`, conn);
+    return this.http.post<Connection>(`${this.baseUrl}/connections/`, conn).pipe(catchError(this.handleError));
   }
 
-  // === AI ENDPOINTS ===
-  analyzeIdea(payload: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/analyze/`, payload);
+  updateConnection(id: number, conn: Partial<Connection>): Observable<Connection> {
+    return this.http.patch<Connection>(`${this.baseUrl}/connections/${id}/`, conn).pipe(catchError(this.handleError));
+  }
+
+  deleteConnection(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/connections/${id}/`).pipe(catchError(this.handleError));
+  }
+
+  recalculateSemanticWeights(): Observable<any> {
+    return this.http.post(`${this.baseUrl}/connections/auto_weight/`, {}).pipe(catchError(this.handleError));
+  }
+
+  // =====================================================
+  // 🔹 AI ENDPOINTS
+  // =====================================================
+  findSimilarIdeas(text: string, top_k: number = 5, min_threshold: number = 0.5): Observable<{ results: SimilarIdea[] }> {
+    const payload = { text, top_k, min_threshold };
+    return this.http.post<{ results: SimilarIdea[] }>(
+      `${this.baseUrl}/similar/`, // ✅ endpoint globale (non più sotto /ideas/)
+      payload
+    ).pipe(catchError(this.handleError));
+  }
+
+  analyzeIdea(payload: { id?: number; text?: string }): Observable<any> {
+    return this.http.post(`${this.baseUrl}/analyze/`, payload).pipe(catchError(this.handleError));
   }
 
   refreshAnalysis(): Observable<any> {
-    return this.http.post(`${this.baseUrl}/refresh/`, {});
+    return this.http.post(`${this.baseUrl}/refresh/`, {}).pipe(catchError(this.handleError));
   }
 
   getMap(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/map/`);
+    return this.http.get(`${this.baseUrl}/map/`).pipe(catchError(this.handleError));
+  }
+
+  // =====================================================
+  // 🔹 ERRORE GLOBALE
+  // =====================================================
+  private handleError(error: HttpErrorResponse) {
+    console.error('❌ API Error:', error);
+    let message = 'Errore di connessione al server.';
+    if (error.status === 0) message = 'Server non raggiungibile.';
+    else if (error.error?.error) message = error.error.error;
+    else if (error.error?.message) message = error.error.message;
+    return throwError(() => new Error(message));
   }
 }

@@ -4,7 +4,6 @@ import {MatSnackBar, MatSnackBarModule} from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../services/auth.service';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
 
 interface User {
   username: string;
