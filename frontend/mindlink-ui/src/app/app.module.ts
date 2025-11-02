@@ -11,16 +11,18 @@ import { AppComponent } from './app.component';
 import { AuthComponent } from './auth/auth.component'; // Standalone ✅
 import { GraphViewComponent } from './components/graph-view/graph-view.component';
 import { AuthLayoutComponent } from './auth-layout/auth-layout.component';
+import { NavbarComponent } from './components/navbar/navbar.component';
+import { SearchPanelComponent } from './components/search-panel/search-panel.component';
 
 // 🔹 Servizi e guardie
 import { AuthInterceptor } from './services/auth.interceptor';
 import { AuthGuard } from './services/auth.guard';
-import {NavbarComponent} from "./components/navbar/navbar.component";
-import { SearchPanelComponent } from './components/search-panel/search-panel.component';
+import {AdminGuard} from "../admin/services/admin-guard";
+import {SettingsComponent} from "./components/settings/settings.component";
 
 @NgModule({
   declarations: [
-    AppComponent// layout principale
+    AppComponent // layout principale
   ],
   imports: [
     BrowserModule,
@@ -35,7 +37,7 @@ import { SearchPanelComponent } from './components/search-panel/search-panel.com
     // ============================================================
     RouterModule.forRoot([
       // 🟢 Area pubblica (login / registrazione)
-      {path: 'auth', component: AuthComponent},
+      { path: 'auth', component: AuthComponent },
 
       // 🔒 Area protetta (autenticata)
       {
@@ -44,7 +46,31 @@ import { SearchPanelComponent } from './components/search-panel/search-panel.com
         canActivate: [AuthGuard],
         children: [
           // principali
-          {path: 'graph', component: GraphViewComponent},
+          { path: 'graph', component: GraphViewComponent },
+
+          // ======================================================
+          // 🧠 Area Admin (lazy-loaded)
+          // ======================================================
+          {
+            path: 'admin',
+            canActivate: [AuthGuard, AdminGuard],
+            loadChildren: () =>
+              import('../admin/admin-routing.module').then(
+                (m) => m.AdminRoutingModule
+              ),
+          },
+
+
+
+          {
+
+
+
+            path: 'settings',
+            component: SettingsComponent
+          },
+
+          // 🔹 altri moduli principali
           {
             path: 'graph3d',
             loadComponent: () =>
@@ -52,8 +78,6 @@ import { SearchPanelComponent } from './components/search-panel/search-panel.com
                 (m) => m.GraphView3dComponent
               ),
           },
-
-          // navbar links
           {
             path: 'dashboard',
             loadComponent: () =>
@@ -83,25 +107,16 @@ import { SearchPanelComponent } from './components/search-panel/search-panel.com
               ),
           },
 
-          // Admin
-          {
-            path: 'admin/training',
-            loadComponent: () =>
-              import('./components/admin-training/admin-training.component').then(
-                (m) => m.AdminTrainingComponent
-              ),
-          },
-
-          // Redirect default
-          {path: '', redirectTo: 'graph', pathMatch: 'full'},
+          // 🔁 Redirect di default
+          { path: '', redirectTo: 'graph', pathMatch: 'full' },
         ],
       },
 
-      // fallback
-      {path: '**', redirectTo: '/auth'},
+      // 🚫 Fallback per route non trovate
+      { path: '**', redirectTo: '/auth' },
     ]),
 
-    // Standalone component
+    // Standalone componenti condivisi
     AuthLayoutComponent,
     NavbarComponent,
     GraphViewComponent,
@@ -126,8 +141,6 @@ import { SearchPanelComponent } from './components/search-panel/search-panel.com
   ],
 
   bootstrap: [AppComponent],
-  exports: [
-    SearchPanelComponent
-  ]
+  exports: [SearchPanelComponent],
 })
 export class AppModule {}

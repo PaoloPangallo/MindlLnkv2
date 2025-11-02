@@ -4,12 +4,13 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .models import Connection, Idea
-from .serializers import ConnectionSerializer
+from ideas.models import Connection, Idea
+from ideas.serializers import ConnectionSerializer
 import logging
 
 # Importa la nuova funzione di alto livello dal core
-from .analyze import recalculate_semantic_connections
+from ideas.analyze import recalculate_semantic_connections
+from notifications.utils import notify_new_connection
 
 logger = logging.getLogger(__name__)
 
@@ -25,35 +26,22 @@ class ConnectionViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["post"])
     def connect(self, request):
-        """
-        Crea una connessione manuale tra due idee.
-        (Questa funzione era già corretta e non usa AI).
-        """
         source_id = request.data.get("source_id")
         target_id = request.data.get("target_id")
         strength = float(request.data.get("strength", 0.5))
         ctype = request.data.get("type", "manual")
 
         if not source_id or not target_id:
-            return Response(
-                {"error": "source_id and target_id required"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "source_id and target_id required"}, status=400)
 
         if source_id == target_id:
-            return Response(
-                {"error": "Cannot connect an idea to itself."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Cannot connect an idea to itself."}, status=400)
 
         try:
             source = Idea.objects.get(id=source_id)
             target = Idea.objects.get(id=target_id)
         except Idea.DoesNotExist:
-            return Response(
-                {"error": "One or both ideas not found."},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"error": "One or both ideas not found."}, status=404)
 
         connection, created = Connection.objects.get_or_create(
             source=source,
@@ -68,6 +56,9 @@ class ConnectionViewSet(viewsets.ModelViewSet):
             message = "Updated existing connection."
         else:
             message = "Created new connection."
+
+            # 🔔 Genera notifiche
+            notify_new_connection(source, target, request.user)
 
         serializer = self.get_serializer(connection)
         return Response({"message": message, "connection": serializer.data})

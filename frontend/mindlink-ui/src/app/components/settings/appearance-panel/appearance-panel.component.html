@@ -1,0 +1,34 @@
+<mat-card>
+  <mat-card-title>Aspetto</mat-card-title>
+  <mat-card-content [formGroup]="form">
+    <!-- Tema -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <span>Tema scuro</span>
+      <mat-slide-toggle formControlName="theme" [checked]="form.value.theme === 'dark'"
+                        (change)="form.patchValue({ theme: $event.checked ? 'dark' : 'light' })">
+      </mat-slide-toggle>
+    </div>
+
+    <!-- Colore accent -->
+    <div class="d-flex align-items-center">
+      <span>Colore principale</span>
+      <input
+        type="color"
+        class="form-control form-control-color ms-3"
+        formControlName="accent_color"
+      />
+    </div>
+
+    <!-- Anteprima -->
+    <div class="theme-preview mt-4 p-3 rounded border">
+      <p>Anteprima tema attuale:</p>
+      <div class="preview-box d-flex align-items-center justify-content-center"
+           [ngStyle]="{
+             'background-color': form.value.accent_color,
+             'color': form.value.theme === 'dark' ? '#fff' : '#000'
+           }">
+        {{ form.value.theme === 'dark' ? '🌙 Tema Scuro' : '☀️ Tema Chiaro' }}
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>

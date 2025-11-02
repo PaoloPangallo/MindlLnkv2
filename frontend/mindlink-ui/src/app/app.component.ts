@@ -7,6 +7,12 @@ import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AuthService } from './services/auth.service';
 
+const savedTheme = localStorage.getItem('user_theme');
+if (savedTheme) {
+  document.body.setAttribute('data-theme', savedTheme);
+}
+
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -27,4 +33,6 @@ export class AppComponent implements OnInit {
         this.showWelcome = event.urlAfterRedirects === '/' || event.urlAfterRedirects === '/graph';
       });
   }
+
+
 }

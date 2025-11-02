@@ -54,10 +54,25 @@ export class AdminTrainingComponent implements OnInit, OnDestroy {
     this.logEvent('🧠 Componente inizializzato', 'info');
   }
 
-  ngOnInit(): void {
-    this.logEvent('Pannello di training pronto', 'info');
-  }
+  stats: any = null;
 
+ngOnInit(): void {
+  this.logEvent('Pannello di training pronto', 'info');
+  this.loadStats();
+}
+
+loadStats(): void {
+  this.trainingService.getTrainingStats().subscribe({
+    next: (data) => {
+      this.stats = data;
+      this.logEvent('📊 Statistiche caricate', 'info');
+      this.cdr.markForCheck();
+    },
+    error: (err) => {
+      this.logEvent('❌ Errore nel caricamento statistiche', 'error');
+    }
+  });
+}
   /** Avvia il processo di training */
   initiateTraining(): void {
     if (this.isLoading) {

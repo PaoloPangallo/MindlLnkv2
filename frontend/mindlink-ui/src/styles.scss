@@ -13,6 +13,28 @@ $mindlink-theme: mat.define-light-theme((
   ),
 ));
 
+
+/* altezza stimata della navbar */
+:root {
+  --navbar-height: 64px;
+}
+
+/* navbar fissata in alto */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--navbar-height);
+  z-index: 1000;
+}
+
+/* corpo principale della pagina */
+.main-content {
+  padding-top: var(--navbar-height);
+}
+
+
 @include mat.all-component-themes($mindlink-theme);
 
 // ========== GLOBAL RESET ==========
@@ -49,3 +71,6 @@ html, body {
     height: 100% !important;
   }
 }
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

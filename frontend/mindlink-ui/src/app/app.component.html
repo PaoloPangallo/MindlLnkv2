@@ -1,6 +1,8 @@
-<app-navbar *ngIf="auth.currentUser" [currentUser]="auth.currentUser"></app-navbar>
+<app-navbar
+  *ngIf="auth.currentUser"
+  [currentUser]="auth.currentUser">
+</app-navbar>
 
-
-<main>
+<main class="main-content">
   <router-outlet></router-outlet>
 </main>

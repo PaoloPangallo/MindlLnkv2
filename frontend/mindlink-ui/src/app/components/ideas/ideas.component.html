@@ -1,4 +1,238 @@
-<section class="page">
-  <h1>💡 Ideas</h1>
-  <p>Qui potrai gestire, analizzare e collegare le tue idee con l’AI.</p>
+<section class="ideas-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="title-section">
+      <h2>
+        <span class="icon">💡</span>
+        Le tue Idee
+      </h2>
+      <p class="subtitle">Gestisci, esplora e analizza tutte le tue idee creative</p>
+    </div>
+    <button class="btn-refresh" (click)="loadMyIdeas()" [disabled]="loading">
+      <span class="refresh-icon" [class.spinning]="loading">🔄</span>
+      <span>Aggiorna</span>
+    </button>
+  </div>
+
+  <!-- Statistiche rapide -->
+  <div class="quick-stats" *ngIf="insights && !loading">
+    <div class="stat-item">
+      <div class="stat-icon">📚</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ insights.total_ideas }}</div>
+        <div class="stat-label">Idee Totali</div>
+      </div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-icon">🗂️</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ insights.categories?.length || 0 }}</div>
+        <div class="stat-label">Categorie</div>
+      </div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-icon">🏷️</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ insights.top_keywords?.length || 0 }}</div>
+        <div class="stat-label">Keywords Uniche</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Messaggi -->
+<div *ngIf="infoMessage" class="alert alert-info">
+  {{ infoMessage }}
+</div>
+
+<div *ngIf="error" class="alert alert-error">
+  {{ error }}
+</div>
+
+
+  <!-- Tabs Navigation -->
+  <nav class="tabs-nav">
+    <button
+      class="tab-btn"
+      [class.active]="activeTab === 'mine'"
+      (click)="activeTab = 'mine'">
+      <span class="tab-icon">📚</span>
+      <span class="tab-label">Le mie idee</span>
+      <span class="tab-badge" *ngIf="ideas.length > 0">{{ ideas.length }}</span>
+    </button>
+
+    <button
+      class="tab-btn"
+      [class.active]="activeTab === 'related'"
+      (click)="activeTab = 'related'">
+      <span class="tab-icon">🔗</span>
+      <span class="tab-label">Correlate</span>
+      <span class="tab-badge" *ngIf="relatedIdeas.length > 0">{{ relatedIdeas.length }}</span>
+    </button>
+
+    <button
+      class="tab-btn"
+      [class.active]="activeTab === 'stats'"
+      (click)="activeTab = 'stats'">
+      <span class="tab-icon">📊</span>
+      <span class="tab-label">Statistiche</span>
+    </button>
+  </nav>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Caricamento in corso...</p>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="tab-content" *ngIf="!loading">
+
+    <!-- TAB 1: Le mie idee -->
+    <div class="ideas-grid" *ngIf="activeTab === 'mine'">
+      <div class="empty-state" *ngIf="ideas.length === 0">
+        <div class="empty-icon">💭</div>
+        <h3>Nessuna idea ancora</h3>
+        <p>Inizia ad aggiungere le tue prime idee creative!</p>
+      </div>
+
+      <div
+        class="idea-card"
+        *ngFor="let idea of ideas"
+        (click)="selectIdea(idea)"
+        [class.selected]="selectedIdea?.id === idea.id">
+        <div class="idea-header">
+          <h3 class="idea-title">{{ idea.title }}</h3>
+          <div class="idea-category">
+            <span class="category-icon">🗂️</span>
+            <span>{{ idea.category || 'Non classificata' }}</span>
+          </div>
+        </div>
+
+        <p class="idea-summary">
+          {{ idea.summary || 'Nessun riassunto disponibile.' }}
+        </p>
+
+        <div class="idea-keywords" *ngIf="idea.keywords?.length">
+          <span class="keyword-tag" *ngFor="let kw of idea.keywords">
+            #{{ kw }}
+          </span>
+        </div>
+
+        <div class="idea-footer">
+          <div class="idea-date">
+            <span class="date-icon">📅</span>
+            <span>{{ idea.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <button class="btn-view-related"
+                  (click)="selectIdea(idea); activeTab = 'related'; $event.stopPropagation()">
+            <span>Vedi correlate</span>
+            <span class="arrow">→</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Idee correlate -->
+    <div class="related-section" *ngIf="activeTab === 'related'">
+      <div class="empty-state" *ngIf="!selectedIdea?.id">
+        <div class="empty-icon">🔍</div>
+        <h3>Seleziona un'idea</h3>
+        <p>Clicca su un'idea dalla tab "Le mie idee" per vedere quelle correlate</p>
+      </div>
+
+      <div class="empty-state" *ngIf="selectedIdea?.id && relatedIdeas.length === 0">
+        <div class="empty-icon">🔗</div>
+        <h3>Nessuna correlazione trovata</h3>
+        <p>Non ci sono idee simili a quella selezionata</p>
+      </div>
+
+      <div class="related-grid" *ngIf="selectedIdea?.id && relatedIdeas.length > 0">
+        <div class="related-header">
+          <h3>💡 Idee correlate</h3>
+          <p>Trovate {{ relatedIdeas.length }} idee simili</p>
+        </div>
+
+        <div class="related-card" *ngFor="let rel of relatedIdeas">
+          <div class="similarity-badge">
+            <span class="similarity-icon">🎯</span>
+            <span class="similarity-value">{{ rel.similarity * 100 | number:'1.0-0' }}%</span>
+          </div>
+
+          <h4 class="related-title">{{ rel.title }}</h4>
+
+          <div class="related-meta">
+            <div class="meta-item">
+              <span class="meta-icon">🗂️</span>
+              <span>{{ rel.category || 'Non classificata' }}</span>
+            </div>
+          </div>
+
+          <div class="similarity-bar">
+            <div class="similarity-fill" [style.width.%]="rel.similarity * 100"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: Statistiche -->
+    <div class="insights-section" *ngIf="activeTab === 'stats' && insights">
+      <div class="insights-grid">
+        <div class="insight-card highlight">
+          <div class="insight-icon">📚</div>
+          <div class="insight-content">
+            <h3>Totale Idee</h3>
+            <div class="insight-value">{{ insights.total_ideas }}</div>
+            <p>Idee create finora</p>
+          </div>
+        </div>
+
+        <div class="insight-card categories">
+          <div class="insight-header">
+            <div class="insight-icon">🗂️</div>
+            <h3>Categorie più frequenti</h3>
+          </div>
+
+          <div class="category-list" *ngIf="insights.categories && insights.categories.length > 0">
+            <div class="category-item" *ngFor="let c of insights.categories">
+              <div class="category-info">
+                <span class="category-name">{{ c.category || 'Non classificata' }}</span>
+                <span class="category-count">{{ c.count }}</span>
+              </div>
+              <div class="category-bar">
+                <div class="category-bar-fill" [style.width.%]="(c.count / insights.total_ideas) * 100"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-mini" *ngIf="!insights.categories || insights.categories.length === 0">
+            <p>Nessuna categoria disponibile</p>
+          </div>
+        </div>
+
+        <div class="insight-card keywords">
+          <div class="insight-header">
+            <div class="insight-icon">🏷️</div>
+            <h3>Parole chiave più usate</h3>
+          </div>
+
+          <div class="keywords-cloud" *ngIf="insights.top_keywords && insights.top_keywords.length > 0">
+            <span class="keyword-cloud-tag" *ngFor="let kw of insights.top_keywords">
+              #{{ kw }}
+            </span>
+          </div>
+
+          <div class="empty-mini" *ngIf="!insights.top_keywords || insights.top_keywords.length === 0">
+            <p>Nessuna keyword disponibile</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="activeTab === 'stats' && !insights">
+      <div class="empty-icon">📊</div>
+      <h3>Statistiche non disponibili</h3>
+      <p>Le statistiche verranno generate con le tue prime idee</p>
+    </div>
+  </div>
 </section>

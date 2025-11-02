@@ -1,86 +1,161 @@
-<div class="admin-card">
-  <header class="admin-card__header">
-    <div class="titles">
-      <h2>Configurazione Training</h2>
-      <p class="subtitle">
-        Avvia il fine-tuning istantaneo del modello con aggiornamento semantico
-      </p>
+<section class="admin-training">
+  <!-- Header -->
+  <div class="header">
+    <div class="title-section">
+      <h2>
+        <span class="icon">🧠</span>
+        Training Modello AI
+      </h2>
+      <p class="subtitle">Fine-tuning istantaneo con aggiornamento semantico automatico</p>
     </div>
-
-    <div class="status">
+    <div class="status-chip">
       <span
         class="chip"
         [ngClass]="{
-          'chip--ok': state === 'success',
-          'chip--err': state === 'failure',
-          'chip--info': state === 'pending'
+          'chip--success': state === 'success',
+          'chip--error': state === 'failure',
+          'chip--pending': state === 'pending',
+          'chip--idle': state === 'idle'
         }"
         role="status"
         [attr.aria-label]="stateLabel">
         {{ stateLabel }}
       </span>
     </div>
-  </header>
-
-  <div class="admin-card__actions">
-    <button
-      class="btn"
-      (click)="initiateTraining()"
-      [disabled]="isLoading"
-      [attr.aria-busy]="isLoading"
-      aria-label="Avvia il training istantaneo">
-      <span class="spinner" *ngIf="isLoading" aria-hidden="true"></span>
-      <span>{{ isLoading ? 'Training in corso…' : 'Avvia Training' }}</span>
-    </button>
   </div>
 
-  <!-- Progress bar indicatore -->
-  <div class="progress" [class.progress--active]="isLoading" role="progressbar" [attr.aria-valuenow]="progress">
-    <div class="progress__bar" [style.right.%]="100 - progress"></div>
+  <!-- Statistiche -->
+  <div class="stats-grid" *ngIf="stats">
+    <div class="stat-card">
+      <div class="stat-icon">💡</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.total_ideas }}</div>
+        <div class="stat-label">Idee Totali</div>
+      </div>
+    </div>
+    <div class="stat-card trained">
+      <div class="stat-icon">✅</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.trained_ideas }}</div>
+        <div class="stat-label">Già Addestrate</div>
+      </div>
+    </div>
+    <div class="stat-card new">
+      <div class="stat-icon">✨</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.new_ideas }}</div>
+        <div class="stat-label">Nuove Disponibili</div>
+      </div>
+    </div>
+    <div class="stat-card model">
+      <div class="stat-icon">📅</div>
+      <div class="stat-content">
+        <div class="stat-value model-name">{{ stats.latest_model }}</div>
+        <div class="stat-label">Ultimo Modello</div>
+      </div>
+    </div>
   </div>
 
-  <!-- Messaggio di stato -->
-  <div class="message" *ngIf="statusMessage" role="alert">
-    <span [ngSwitch]="state">
-      <span *ngSwitchCase="'success'">✓</span>
-      <span *ngSwitchCase="'failure'">✕</span>
-      <span *ngSwitchDefault>ℹ</span>
-    </span>
-    {{ statusMessage }}
+  <!-- Pannello di controllo -->
+  <div class="control-panel">
+    <div class="control-header">
+      <h3>🎛️ Controlli Training</h3>
+      <p>Avvia il processo di fine-tuning per aggiornare il modello con le nuove idee</p>
+    </div>
+
+    <div class="action-section">
+      <button
+        class="btn-primary"
+        (click)="initiateTraining()"
+        [disabled]="isLoading"
+        [attr.aria-busy]="isLoading"
+        aria-label="Avvia il training istantaneo">
+        <span class="btn-spinner" *ngIf="isLoading"></span>
+        <span class="btn-icon" *ngIf="!isLoading">🚀</span>
+        <span class="btn-text">{{ isLoading ? 'Training in corso...' : 'Avvia Training' }}</span>
+      </button>
+
+      <div class="action-info" *ngIf="!isLoading && stats && stats.new_ideas > 0">
+        <span class="info-icon">ℹ️</span>
+        <span>{{ stats.new_ideas }} nuove idee verranno aggiunte al modello</span>
+      </div>
+      <div class="action-info warning" *ngIf="!isLoading && stats && stats.new_ideas === 0">
+        <span class="info-icon">⚠️</span>
+        <span>Nessuna nuova idea disponibile per il training</span>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-section" *ngIf="isLoading || progress > 0">
+      <div class="progress-header">
+        <span class="progress-label">Avanzamento</span>
+        <span class="progress-percentage">{{ progress }}%</span>
+      </div>
+      <div class="progress-bar" role="progressbar" [attr.aria-valuenow]="progress">
+        <div class="progress-fill" [style.width.%]="progress"></div>
+      </div>
+    </div>
+
+    <!-- Messaggio di stato -->
+    <div class="status-message" *ngIf="statusMessage" [ngClass]="'status-message--' + state" role="alert">
+      <span class="status-icon">
+        <span *ngIf="state === 'success'">✅</span>
+        <span *ngIf="state === 'failure'">❌</span>
+        <span *ngIf="state === 'pending'">⏳</span>
+      </span>
+      <span class="status-text">{{ statusMessage }}</span>
+    </div>
   </div>
 
-  <!-- Timeline e dettagli -->
-  <section class="log-panel" *ngIf="logs.length > 0">
-    <div class="log-panel__header">
-      <div>
-        <h3>Log di esecuzione</h3>
-        <span class="log-count">{{ logs.length }} evento/i</span>
+  <!-- Log Panel -->
+  <div class="log-panel">
+    <div class="log-header">
+      <div class="log-title">
+        <span class="log-icon">📋</span>
+        <h3>Log di Esecuzione</h3>
+        <span class="log-badge" *ngIf="logs.length > 0">{{ logs.length }}</span>
       </div>
       <button
-        class="link"
+        class="btn-clear"
         (click)="clearLogs()"
-        [disabled]="isLoading"
+        [disabled]="isLoading || logs.length === 0"
         aria-label="Cancella i log">
-        Svuota
+        <span class="clear-icon">🧹</span>
+        Pulisci Log
       </button>
     </div>
-    <pre
-      class="log-panel__body"
-      role="log"
-      aria-live="polite"
-      aria-label="Log dell'esecuzione del training">{{ formattedLogs }}</pre>
-  </section>
 
-  <!-- Stato vuoto -->
-  <section class="log-panel" *ngIf="logs.length === 0">
-    <div class="log-panel__header">
-      <h3>Log di esecuzione</h3>
+    <div class="log-body" role="log" aria-live="polite" aria-label="Log dell'esecuzione del training">
+      <div class="log-empty" *ngIf="logs.length === 0">
+        <div class="empty-icon">📝</div>
+        <p>Nessun evento registrato</p>
+        <span>I log appariranno qui durante il training</span>
+      </div>
+
+      <div class="log-entries" *ngIf="logs.length > 0">
+        <div
+          class="log-entry"
+          *ngFor="let log of logs"
+          [ngClass]="'log-entry--' + log.level">
+          <span class="log-time">{{ log.timestamp }}</span>
+          <span class="log-level-icon">
+            <span *ngIf="log.level === 'success'">✅</span>
+            <span *ngIf="log.level === 'error'">❌</span>
+            <span *ngIf="log.level === 'warning'">⚠️</span>
+            <span *ngIf="log.level === 'info'">ℹ️</span>
+          </span>
+          <span class="log-message">{{ log.message }}</span>
+        </div>
+      </div>
     </div>
-    <pre class="log-panel__body log-panel__body--empty">— nessun evento registrato —</pre>
-  </section>
-
-  <!-- Footer: durata -->
-  <div class="training-footer" *ngIf="duration > 0">
-    <span class="duration-badge">Durata: {{ (duration / 1000) | number: '1.2-2' }}s</span>
   </div>
-</div>
+
+  <!-- Footer con durata -->
+  <div class="training-footer" *ngIf="duration > 0">
+    <div class="duration-badge">
+      <span class="duration-icon">⏱️</span>
+      <span class="duration-label">Durata totale:</span>
+      <span class="duration-value">{{ (duration / 1000) | number: '1.2-2' }}s</span>
+    </div>
+  </div>
+</section>

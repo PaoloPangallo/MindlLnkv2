@@ -301,6 +301,34 @@ $transition-slow: 350ms cubic-bezier(.4,.0,.2,1);
   min-width: 0;
 }
 
+
+.tooltip-content,
+.tooltip-content p,
+.tooltip-summary {
+  white-space: pre-line;
+  line-height: 1.6;
+}
+
+.info-section {
+  margin: 3rem auto;
+  padding: 2rem 1rem;
+  max-width: 900px;
+  text-align: center;
+
+  @media (max-width: 768px) {
+    padding: 1.5rem 1rem;
+  }
+}
+
+
+.section-title {
+  font-size: 1.8rem;
+  color: #3B82F6;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 10px rgba(59,130,246,0.3);
+}
+
+
 .form-card {
   @include card;
   padding: clamp(18px, 2vw, 26px);

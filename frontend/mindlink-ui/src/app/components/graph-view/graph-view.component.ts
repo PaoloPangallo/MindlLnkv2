@@ -9,7 +9,7 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Subject, debounceTime, takeUntil } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import Sigma from 'sigma';
 import Graph from 'graphology';
 import circular from 'graphology-layout/circular';
@@ -19,6 +19,8 @@ import {CommonModule, NgForOf, NgIf, TitleCasePipe} from "@angular/common";
 import {FormsModule} from "@angular/forms";
 import { GraphFilterService } from '../../services/graph-filter.service';
 import { SearchPanelComponent } from '../search-panel/search-panel.component';
+import {InfoPanelComponent} from "../info-panel/info-panel.component";
+
 
 
 // ======================
@@ -69,7 +71,8 @@ interface GraphStats {
     TitleCasePipe,
     SearchPanelComponent,
     NgForOf,
-    CommonModule
+    CommonModule,
+    InfoPanelComponent,
   ],
   standalone: true
 })
@@ -78,12 +81,7 @@ export class GraphViewComponent implements OnInit, OnDestroy {
   private sigmaInstance!: Sigma<NodeAttributes>;
   private graph!: Graph<NodeAttributes, any>; // ✅ qui va bene
   private destroy$ = new Subject<void>();
-  private originalNodes: any[] = [];
-  private originalLinks: any[] = [];
-
-
-
-  // Stato UI
+// Stato UI
   isLoading = false;
   error: string | null = null;
   selectedNodeId: string | null = null;
@@ -336,6 +334,14 @@ createIdea(): void {
     return;
   }
 
+  // ✅ Normalizza testo mantenendo spazi e nuove righe
+  this.newIdea.content = this.newIdea.content
+    .replace(/\r\n/g, '\n')     // normalizza newline
+    .replace(/[ \t]+/g, ' ')    // sostituisce tab e spazi multipli con uno solo
+    .trim();                    // rimuove spazi solo ai bordi
+
+  console.log('📤 Dati inviati al backend:', JSON.stringify(this.newIdea, null, 2));
+
   this.isLoading = true;
   this.error = null;
   this.cdr.markForCheck();
@@ -366,12 +372,13 @@ createIdea(): void {
       },
       error: (err) => {
         console.error('❌ Errore creazione idea:', err);
-        this.error = 'Errore nella creazione dell\'idea. Riprova più tardi.';
+        this.error = "Errore nella creazione dell'idea. Riprova più tardi.";
         this.isLoading = false;
         this.cdr.markForCheck();
       },
     });
 }
+
 
 private applySearch(query: string) {
   if (!this.graph) return;
@@ -389,6 +396,9 @@ private applySearch(query: string) {
 
   this.sigmaInstance.refresh(); // aggiorna il rendering
 }
+
+
+
 
 
 

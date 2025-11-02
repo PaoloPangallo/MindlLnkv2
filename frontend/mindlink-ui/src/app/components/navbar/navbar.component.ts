@@ -3,6 +3,9 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { User } from '../../models/user.model';
+import { Subscription } from 'rxjs';
+import {AppNotification, NotificationsService} from "../../services/notifications.services";
+
 
 interface NavItem {
   label: string;
@@ -38,30 +41,43 @@ export class NavbarComponent implements OnInit, OnDestroy {
   ];
 
   // 🔹 Sezione admin opzionale
-  adminItems: NavItem[] = [
-    { label: 'Training', route: '/admin/training', icon: 'cpu', adminOnly: true },
-  ];
+// 🔔 Notifiche
 
-  // 🔔 Notifiche
-  notifications = [
-    { id: 1, title: 'Nuova connessione', message: 'Qualcuno ha collegato una idea alla tua', time: '5 min fa', read: false },
-    { id: 2, title: 'Idea in trending', message: 'Una delle tue idee è tra i trending', time: '1 ora fa', read: false },
-    { id: 3, title: 'Sistema aggiornato', message: 'Nuove funzionalità disponibili', time: '1 giorno fa', read: true },
-  ];
-  unreadCount = 2;
 
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(
+    private auth: AuthService,
+    private router: Router,
+    private notificationsService: NotificationsService) {}
 
   // ======================================================
   // 🔹 LIFECYCLE
   // ======================================================
-  ngOnInit(): void {
-    window.addEventListener('scroll', this.onScroll.bind(this));
-  }
+notifications: AppNotification[] = [];
+unreadCount = 0;
+private notifSub?: Subscription;
+
+ngOnInit(): void {
+  window.addEventListener('scroll', this.onScroll.bind(this));
+  this.currentUser = this.auth.currentUserValue;
+
+  // ✅ Polling automatico notifiche ogni 30s
+  this.notifSub = this.notificationsService.autoRefresh(30000).subscribe({
+    next: (data) => {
+      this.notifications = data;
+      this.unreadCount = data.filter(n => !n.is_read).length;
+    },
+    error: (err) => console.error('Errore fetch notifiche:', err)
+  });
+}
+
+
+
 
   ngOnDestroy(): void {
-    window.removeEventListener('scroll', this.onScroll.bind(this));
-  }
+  window.removeEventListener('scroll', this.onScroll.bind(this));
+  this.notifSub?.unsubscribe();
+}
+
 
   // ======================================================
   // 🔹 SCROLL / UI
@@ -118,17 +134,22 @@ closeMenu(): void {
   // 🔹 NOTIFICHE
   // ======================================================
   markAsRead(notificationId: number): void {
-    const notif = this.notifications.find(n => n.id === notificationId);
-    if (notif && !notif.read) {
-      notif.read = true;
-      this.unreadCount--;
-    }
+  const notif = this.notifications.find(n => n.id === notificationId);
+  if (notif && !notif.is_read) {
+    this.notificationsService.markAsRead(notificationId).subscribe(() => {
+      notif.is_read = true;
+      this.unreadCount = this.notifications.filter(n => !n.is_read).length;
+    });
   }
+}
 
-  markAllAsRead(): void {
-    this.notifications.forEach(n => (n.read = true));
-    this.unreadCount = 0;
-  }
+markAllAsRead(): void {
+  const unread = this.notifications.filter(n => !n.is_read);
+  unread.forEach(n => this.notificationsService.markAsRead(n.id).subscribe());
+  this.notifications.forEach(n => (n.is_read = true));
+  this.unreadCount = 0;
+}
+
 
   // ======================================================
   // 🔹 UTIL

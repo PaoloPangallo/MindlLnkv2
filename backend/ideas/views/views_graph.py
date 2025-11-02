@@ -2,7 +2,52 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .models import Idea, Connection
+from ideas.models import Idea, Connection
+
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_user_map(request):
+    """
+    🔹 Restituisce il grafo solo delle idee dell’utente corrente.
+    """
+    ideas = Idea.objects.filter(user=request.user).exclude(embedding=None)
+    connections = Connection.objects.filter(source__user=request.user, target__user=request.user)
+
+    nodes = [
+        {
+            "data": {
+                "id": str(idea.id),
+                "label": idea.title,
+                "category": idea.category or "non classificata",
+                "summary": idea.summary or "",
+            }
+        }
+        for idea in ideas
+    ]
+
+    edges = [
+        {
+            "data": {
+                "id": f"{conn.source.id}_{conn.target.id}",
+                "source": str(conn.source.id),
+                "target": str(conn.target.id),
+                "type": conn.type,
+                "strength": conn.strength,
+            }
+        }
+        for conn in connections
+    ]
+
+    meta = {
+        "total_nodes": len(nodes),
+        "total_edges": len(edges),
+        "generated_by": "MindLink API (User Map)",
+    }
+
+    return Response({"meta": meta, "graph": {"nodes": nodes, "edges": edges}})
+
 
 
 @api_view(["GET"])

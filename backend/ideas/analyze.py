@@ -76,8 +76,11 @@ def clear_model_cache():
 def clean_text(text: str) -> str:
     if not text:
         return ""
-    text = re.sub(r"[^a-zA-Zàèéìòùç\s]", "", text.lower())
-    return re.sub(r"\s+", " ", text).strip()
+    # Mantieni spazi e newline, rimuovi solo simboli strani
+    text = re.sub(r"[^a-zA-Zàèéìòùç0-9\s.,;:!?]", "", text)
+    # Non comprimere \s, ma normalizza solo spazi multipli
+    text = re.sub(r"[ ]{2,}", " ", text)
+    return text.strip()
 
 
 @lru_cache(maxsize=2048)
@@ -156,21 +159,32 @@ def classify_text(text: str) -> str:
 # =====================================================
 def perform_full_analysis(instance: Idea):
     try:
-        text = instance.content or ""
-        summary = summarize_text(text)
-        category = classify_text(text)
-        keywords = extract_keywords(text)
-        embedding = generate_embedding(text)
+        # 🔹 1. Mantieni il testo originale (non pulirlo!)
+        raw_text = instance.content or ""
+
+        # 🔹 2. Usa clean_text SOLO per embedding, non per summary/category
+        cleaned_for_embedding = clean_text(raw_text)
+
+        # 🔹 3. Usa il testo originale per analisi semantiche
+        summary = summarize_text(raw_text)
+        category = classify_text(raw_text)
+        keywords = extract_keywords(raw_text)
+
+        # 🔹 4. Genera embedding dal testo pulito
+        embedding = generate_embedding(cleaned_for_embedding)
         if embedding is None or not np.any(embedding):
             embedding = np.zeros(EMBEDDING_DIM)
 
+        # 🔹 5. Aggiorna solo i campi analitici
         Idea.objects.filter(id=instance.id).update(
             summary=summary,
             category=category,
             keywords=keywords,
             embedding=embedding.tolist(),
         )
+
         logger.info(f"🧠 Analisi completata per Idea #{instance.id}")
+
     except Exception as e:
         logger.exception(f"Errore durante analisi Idea #{instance.id}: {e}")
 
@@ -261,6 +275,45 @@ def find_similar_ideas_by_text(
         for k, i in enumerate(idx)
     ]
     return results
+
+
+def find_similar_ideas(
+        idea: Idea,
+        top_k: int = 5,
+        min_threshold: float = 0.6
+) -> list[tuple[Idea, float]]:
+    """
+    Variante di sistema per generare notifiche e collegamenti.
+    Ritorna una lista di tuple (Idea, score).
+    """
+    try:
+        if not idea.embedding:
+            logger.warning(f"L'idea {idea.id} non ha embedding, skipping similarità.")
+            return []
+
+        # Carica idee con embedding validi
+        ideas_with_embs = list(
+            Idea.objects.exclude(embedding=None).exclude(id=idea.id).only("id", "title", "embedding", "owner")
+        )
+        if not ideas_with_embs:
+            return []
+
+        all_embs = np.array(
+            [np.array(i.embedding, dtype=float) for i in ideas_with_embs],
+            dtype=float
+        )
+
+        # Calcolo similarità
+        target_emb = np.array(idea.embedding, dtype=float)
+        idx, sims = _find_similar_vectors(target_emb, all_embs, top_k, min_threshold)
+
+        # Restituisce tuple (Idea, score)
+        results = [(ideas_with_embs[i], float(sims[k])) for k, i in enumerate(idx)]
+        return results
+
+    except Exception as e:
+        logger.error(f"Errore in find_similar_ideas: {e}")
+        return []
 
 
 def recalculate_semantic_connections(

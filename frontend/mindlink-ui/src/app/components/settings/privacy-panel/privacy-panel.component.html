@@ -1,0 +1,35 @@
+<mat-card>
+  <mat-card-title>Privacy</mat-card-title>
+  <mat-card-content [formGroup]="form">
+    <!-- Visibilità profilo -->
+    <mat-form-field appearance="fill" class="w-50 mb-3">
+      <mat-label>Visibilità profilo</mat-label>
+      <select matNativeControl formControlName="visibility">
+        <option value="public">🌍 Pubblico</option>
+        <option value="link">🔗 Solo con link</option>
+        <option value="private">🔒 Privato</option>
+      </select>
+    </mat-form-field>
+
+    <!-- Consenso AI -->
+    <mat-slide-toggle formControlName="consent_ai">
+      ✅ Consento l’uso dei miei dati (in forma anonima) per migliorare MindLink
+    </mat-slide-toggle>
+
+    <!-- Periodo di conservazione -->
+    <mat-form-field appearance="fill" class="w-50 mt-3">
+      <mat-label>Conservazione dei dati</mat-label>
+      <select matNativeControl formControlName="data_retention">
+        <option value="3m">3 mesi</option>
+        <option value="6m">6 mesi</option>
+        <option value="1y">1 anno</option>
+        <option value="forever">Indefinito</option>
+      </select>
+    </mat-form-field>
+
+    <div class="privacy-note mt-3">
+      <p>🔒 Le tue impostazioni di privacy influenzeranno la visibilità delle tue idee e dei suggerimenti AI.
+      Puoi modificarle in qualsiasi momento.</p>
+    </div>
+  </mat-card-content>
+</mat-card>

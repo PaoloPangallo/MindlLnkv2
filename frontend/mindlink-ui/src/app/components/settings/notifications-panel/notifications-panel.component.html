@@ -1,0 +1,32 @@
+<mat-card>
+  <mat-card-title>Notifiche</mat-card-title>
+  <mat-card-content [formGroup]="form">
+    <div class="notification-option">
+      <mat-slide-toggle formControlName="email_updates">
+        📧 Email sugli aggiornamenti
+      </mat-slide-toggle>
+      <p class="desc">Ricevi un'email quando ci sono nuove attività o connessioni rilevanti.</p>
+    </div>
+
+    <div class="notification-option">
+      <mat-slide-toggle formControlName="ai_suggestions">
+        🤖 Suggerimenti AI
+      </mat-slide-toggle>
+      <p class="desc">Permetti al sistema di inviarti suggerimenti automatici di idee correlate.</p>
+    </div>
+
+    <div class="notification-option">
+      <mat-slide-toggle formControlName="graph_alerts">
+        🔔 Avvisi nel grafo
+      </mat-slide-toggle>
+      <p class="desc">Ricevi notifiche quando qualcuno crea connessioni con le tue idee.</p>
+    </div>
+
+    <div class="notification-option">
+      <mat-slide-toggle formControlName="weekly_summary">
+        📅 Riassunto settimanale
+      </mat-slide-toggle>
+      <p class="desc">Un riepilogo settimanale delle tue attività e nuove opportunità.</p>
+    </div>
+  </mat-card-content>
+</mat-card>

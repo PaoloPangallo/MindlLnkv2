@@ -1,0 +1,282 @@
+<div class="profile-container">
+  <mat-card class="profile-card" [class.loading]="loading">
+
+    <!-- Header con avatar e info base -->
+    <div class="profile-header">
+      <div class="avatar-section">
+        <div class="avatar-wrapper">
+          <div class="avatar-circle">
+  <img
+  *ngIf="avatarPreview || avatarUrl"
+  [src]="(avatarPreview || avatarUrl) || ''"
+  alt="Avatar"
+  class="avatar-image">
+
+  <span *ngIf="!avatarPreview && !avatarUrl" class="avatar-initials">
+    {{ (form?.value?.display_name || 'U').substring(0, 2).toUpperCase() }}
+  </span>
+
+  <div class="avatar-ring"></div>
+</div>
+
+          <input
+  type="file"
+  #avatarInput
+  accept="image/*"
+  hidden
+  (change)="onAvatarSelected($event)" />
+
+<button
+  mat-mini-fab
+  class="avatar-edit-btn"
+  matTooltip="Cambia avatar"
+  aria-label="Cambia avatar"
+  (click)="avatarInput.click()">
+  <mat-icon>photo_camera</mat-icon>
+</button>
+
+        </div>
+
+        <div class="header-info">
+          <h2 class="profile-name">
+            {{ form?.value?.display_name }}
+
+          </h2>
+          <p class="profile-subtitle">
+            <mat-icon>person</mat-icon>
+            <span>Profilo personale</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="profile-stats">
+        <div class="stat-item">
+          <mat-icon>calendar_today</mat-icon>
+          <div class="stat-content">
+            <span class="stat-value">Membro da</span>
+            <span class="stat-label">Gennaio 2024</span>
+          </div>
+        </div>
+        <div class="stat-item">
+          <mat-icon>verified_user</mat-icon>
+          <div class="stat-content">
+            <span class="stat-value">Verificato</span>
+            <span class="stat-label">Account attivo</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="saveProfile()" class="profile-form">
+
+        <!-- Informazioni personali -->
+        <section class="form-section">
+          <div class="section-header">
+            <mat-icon class="section-icon">badge</mat-icon>
+            <div class="section-title-wrapper">
+              <h3 class="section-title">Informazioni personali</h3>
+              <p class="section-description">I tuoi dati identificativi visibili nel sistema</p>
+            </div>
+          </div>
+
+          <div class="form-fields">
+            <!-- Display Name -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nome visualizzato</mat-label>
+              <input
+                matInput
+                formControlName="display_name"
+                placeholder="Inserisci il tuo nome"
+                autocomplete="name"
+                maxlength="50"
+                required>
+              <mat-icon matPrefix>account_circle</mat-icon>
+              <mat-hint align="start">Questo nome sarà visibile agli altri utenti</mat-hint>
+              <mat-hint align="end">{{ form?.value?.display_name }}/50</mat-hint>
+              <mat-error *ngIf="f['display_name'].hasError('required')">
+                Il nome è obbligatorio
+              </mat-error>
+              <mat-error *ngIf="f['display_name'].hasError('minlength')">
+                Il nome deve avere almeno 3 caratteri
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Bio -->
+            <mat-form-field appearance="outline" class="full-width bio-field">
+              <mat-label>Biografia</mat-label>
+              <textarea
+                matInput
+                formControlName="bio"
+                placeholder="Raccontaci qualcosa di te..."
+                rows="4"
+                maxlength="500"
+                cdkTextareaAutosize
+                #autosize="cdkTextareaAutosize"
+                cdkAutosizeMinRows="4"
+                cdkAutosizeMaxRows="8"></textarea>
+              <mat-icon matPrefix>description</mat-icon>
+              <mat-hint align="start">Descrizione opzionale del tuo profilo</mat-hint>
+              <mat-hint align="end">{{ form?.value?.bio }}/500</mat-hint>
+            </mat-form-field>
+          </div>
+        </section>
+
+        <!-- Preferenze -->
+        <section class="form-section">
+          <div class="section-header">
+            <mat-icon class="section-icon">language</mat-icon>
+            <div class="section-title-wrapper">
+              <h3 class="section-title">Preferenze</h3>
+              <p class="section-description">Personalizza la tua esperienza</p>
+            </div>
+          </div>
+
+          <div class="form-fields">
+            <!-- Language -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Lingua preferita</mat-label>
+              <mat-select formControlName="language">
+                <mat-option value="it">
+                  <span class="language-option">
+                    <span class="flag">🇮🇹</span>
+                    Italiano
+                  </span>
+                </mat-option>
+                <mat-option value="en">
+                  <span class="language-option">
+                    <span class="flag">🇬🇧</span>
+                    English
+                  </span>
+                </mat-option>
+                <mat-option value="es">
+                  <span class="language-option">
+                    <span class="flag">🇪🇸</span>
+                    Español
+                  </span>
+                </mat-option>
+                <mat-option value="fr">
+                  <span class="language-option">
+                    <span class="flag">🇫🇷</span>
+                    Français
+                  </span>
+                </mat-option>
+                <mat-option value="de">
+                  <span class="language-option">
+                    <span class="flag">🇩🇪</span>
+                    Deutsch
+                  </span>
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix>translate</mat-icon>
+              <mat-hint>Seleziona la lingua dell'interfaccia</mat-hint>
+            </mat-form-field>
+          </div>
+        </section>
+
+        <!-- Sezione sicurezza info -->
+        <section class="info-section">
+          <div class="info-card security-info">
+            <mat-icon class="info-icon">security</mat-icon>
+            <div class="info-content">
+              <h4 class="info-title">Privacy e sicurezza</h4>
+              <p class="info-text">
+                I tuoi dati sono protetti e non verranno mai condivisi con terze parti.
+                Puoi modificare queste informazioni in qualsiasi momento.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="resetForm()"
+            [disabled]="loading || form.pristine"
+            class="action-btn reset-btn">
+            <mat-icon>refresh</mat-icon>
+            <span>Ripristina</span>
+          </button>
+
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="loading || form.invalid || form.pristine"
+            class="action-btn save-btn">
+            <mat-icon *ngIf="!loading">save</mat-icon>
+            <mat-icon *ngIf="loading" class="spinning">sync</mat-icon>
+            <span>{{ loading ? 'Salvataggio...' : 'Salva modifiche' }}</span>
+          </button>
+        </div>
+
+        <!-- Form status indicator -->
+        <div class="form-status" *ngIf="form.dirty && !loading">
+          <mat-icon>info</mat-icon>
+          <span>Hai modifiche non salvate</span>
+        </div>
+      </form>
+    </mat-card-content>
+
+    <!-- Loading overlay -->
+   <div class="loading-overlay" *ngIf="loading || isUploadingAvatar">
+  <div class="loading-spinner">
+    <mat-icon class="spinning">sync</mat-icon>
+    <p>Caricamento in corso...</p>
+  </div>
+</div>
+  </mat-card>
+
+  <!-- Additional info cards -->
+  <div class="side-cards">
+    <!-- Tips card -->
+    <mat-card class="info-card-small tips-card">
+      <div class="card-icon-header">
+        <mat-icon>lightbulb</mat-icon>
+      </div>
+      <mat-card-content>
+        <h4>Suggerimenti</h4>
+        <ul class="tips-list">
+          <li>
+            <mat-icon>check_circle</mat-icon>
+            <span>Usa un nome riconoscibile</span>
+          </li>
+          <li>
+            <mat-icon>check_circle</mat-icon>
+            <span>Aggiungi una biografia personale</span>
+          </li>
+          <li>
+            <mat-icon>check_circle</mat-icon>
+            <span>Mantieni i dati aggiornati</span>
+          </li>
+        </ul>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Activity card -->
+    <mat-card class="info-card-small activity-card">
+      <div class="card-icon-header">
+        <mat-icon>insights</mat-icon>
+      </div>
+      <mat-card-content>
+        <h4>Attività recente</h4>
+        <div class="activity-item">
+          <mat-icon>edit</mat-icon>
+          <div class="activity-content">
+            <span class="activity-text">Ultimo aggiornamento profilo</span>
+            <span class="activity-time">2 giorni fa</span>
+          </div>
+        </div>
+        <div class="activity-item">
+          <mat-icon>login</mat-icon>
+          <div class="activity-content">
+            <span class="activity-text">Ultimo accesso</span>
+            <span class="activity-time">Oggi</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

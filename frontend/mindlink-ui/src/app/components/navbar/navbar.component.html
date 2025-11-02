@@ -123,19 +123,26 @@
             </button>
           </div>
           <div class="notifications-list">
-            <div
-              *ngFor="let notif of notifications"
-              class="notification-item"
-              [class.unread]="!notif.read"
-              (click)="markAsRead(notif.id)"
-            >
-              <div class="notif-dot" *ngIf="!notif.read"></div>
-              <div class="notif-content">
-                <p class="notif-title">{{ notif.title }}</p>
-                <p class="notif-message">{{ notif.message }}</p>
-                <span class="notif-time">{{ notif.time }}</span>
-              </div>
-            </div>
+           <div
+  *ngFor="let notif of notifications"
+  class="notification-item"
+  [class.unread]="!notif.is_read"
+  (click)="markAsRead(notif.id)"
+>
+  <div class="notif-dot" *ngIf="!notif.is_read"></div>
+  <div class="notif-content">
+  <p class="notif-title">
+  <ng-container [ngSwitch]="notif.type">
+    <span *ngSwitchCase="'idea_related'">💡 Idea correlata</span>
+    <span *ngSwitchCase="'connection'">🔗 Nuova connessione</span>
+    <span *ngSwitchDefault>📢 Notifica di sistema</span>
+  </ng-container>
+</p>
+
+    <p class="notif-message">{{ notif.message }}</p>
+    <span class="notif-time">{{ notif.created_at | date:'short' }}</span>
+  </div>
+</div>
           </div>
           <div class="dropdown-footer">
             <a routerLink="/notifications" class="view-all-link">Visualizza tutte</a>
@@ -183,16 +190,23 @@
             <span>Aiuto & Supporto</span>
           </a>
 
-          <div class="dropdown-divider"></div>
+          <!-- Admin Section (visibile solo per admin) -->
+          <ng-container *ngIf="currentUser?.isAdmin">
+            <div class="dropdown-subtitle">Amministrazione</div>
 
-          <!-- Admin Section -->
-          <div class="dropdown-subtitle">Amministrazione</div>
-          <a class="dropdown-item" (click)="navigateTo('/admin/training')">
-            <i class="pi pi-database"></i>
-            <span>Training</span>
-          </a>
+            <a class="dropdown-item" (click)="navigateTo('/admin/users')">
+              <i class="pi pi-users"></i>
+              <span>Utenti</span>
+            </a>
 
-          <div class="dropdown-divider"></div>
+            <a class="dropdown-item" (click)="navigateTo('/admin/training')">
+              <i class="pi pi-database"></i>
+              <span>Training</span>
+            </a>
+
+            <div class="dropdown-divider"></div>
+          </ng-container>
+
 
           <button class="dropdown-item logout-btn" (click)="logout()">
             <i class="pi pi-sign-out"></i>

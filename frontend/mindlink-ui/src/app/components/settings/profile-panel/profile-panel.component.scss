@@ -1,0 +1,881 @@
+// ============================================================================
+// PROFILE COMPONENT - PRODUCTION READY SCSS
+// ============================================================================
+
+// ----------------------------------------------------------------------------
+// Variables
+// ----------------------------------------------------------------------------
+$primary-color: #1976d2;
+$accent-color: #ff4081;
+$success-color: #4caf50;
+$warn-color: #ff9800;
+$background-light: #fafafa;
+$surface-color: #ffffff;
+$text-primary: rgba(0, 0, 0, 0.87);
+$text-secondary: rgba(0, 0, 0, 0.6);
+$text-disabled: rgba(0, 0, 0, 0.38);
+$divider-color: rgba(0, 0, 0, 0.12);
+
+// Spacing
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-xxl: 48px;
+
+// Border radius
+$radius-sm: 4px;
+$radius-md: 8px;
+$radius-lg: 12px;
+$radius-xl: 16px;
+$radius-circle: 50%;
+
+// Shadows
+$shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
+$shadow-md: 0 4px 8px rgba(0, 0, 0, 0.12);
+$shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.16);
+$shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.2);
+
+// Transitions
+$transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+
+// Breakpoints
+$breakpoint-xs: 320px;
+$breakpoint-sm: 600px;
+$breakpoint-md: 960px;
+$breakpoint-lg: 1280px;
+$breakpoint-xl: 1920px;
+
+// Avatar sizes
+$avatar-size: 120px;
+$avatar-size-mobile: 90px;
+
+// ----------------------------------------------------------------------------
+// Mixins
+// ----------------------------------------------------------------------------
+@mixin respond-to($breakpoint) {
+  @media (max-width: $breakpoint) {
+    @content;
+  }
+}
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin card-elevation($level: 1) {
+  @if $level == 1 {
+    box-shadow: $shadow-sm;
+  } @else if $level == 2 {
+    box-shadow: $shadow-md;
+  } @else if $level == 3 {
+    box-shadow: $shadow-lg;
+  } @else {
+    box-shadow: $shadow-xl;
+  }
+}
+
+@mixin smooth-transition($properties...) {
+  transition-property: $properties;
+  transition-duration: $transition-normal;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@mixin text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ----------------------------------------------------------------------------
+// Main Container
+// ----------------------------------------------------------------------------
+.profile-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-lg;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: $spacing-lg;
+
+  @include respond-to($breakpoint-md) {
+    grid-template-columns: 1fr;
+    padding: $spacing-md;
+  }
+
+  @include respond-to($breakpoint-sm) {
+    padding: $spacing-sm;
+    gap: $spacing-md;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Profile Card
+// ----------------------------------------------------------------------------
+.profile-card {
+  position: relative;
+  border-radius: $radius-xl;
+  overflow: hidden;
+  @include card-elevation(2);
+  @include smooth-transition(box-shadow, transform);
+
+  &:hover {
+    @include card-elevation(3);
+  }
+
+  &.loading {
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  @include respond-to($breakpoint-sm) {
+    border-radius: $radius-lg;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Profile Header
+// ----------------------------------------------------------------------------
+.profile-header {
+  position: relative;
+  padding: $spacing-xl;
+  background: linear-gradient(135deg, rgba($primary-color, 0.05) 0%, rgba($primary-color, 0.02) 100%);
+  border-bottom: 1px solid $divider-color;
+
+  @include respond-to($breakpoint-md) {
+    padding: $spacing-lg;
+  }
+
+  @include respond-to($breakpoint-sm) {
+    padding: $spacing-md;
+  }
+}
+
+.avatar-section {
+  display: flex;
+  align-items: center;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-xl;
+
+  @include respond-to($breakpoint-sm) {
+    flex-direction: column;
+    text-align: center;
+    gap: $spacing-md;
+    margin-bottom: $spacing-lg;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Avatar
+// ----------------------------------------------------------------------------
+.avatar-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatar-circle {
+  position: relative;
+  width: $avatar-size;
+  height: $avatar-size;
+  border-radius: $radius-circle;
+  background: linear-gradient(135deg, $primary-color 0%, lighten($primary-color, 15%) 100%);
+  @include flex-center;
+  @include card-elevation(2);
+  @include smooth-transition(transform, box-shadow);
+
+  &:hover {
+    transform: scale(1.05);
+    @include card-elevation(3);
+  }
+
+  @include respond-to($breakpoint-sm) {
+    width: $avatar-size-mobile;
+    height: $avatar-size-mobile;
+  }
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  border-radius: $radius-circle;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+.avatar-initials {
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: $surface-color;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  user-select: none;
+
+  @include respond-to($breakpoint-sm) {
+    font-size: 2rem;
+  }
+}
+
+.avatar-ring {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border: 3px solid transparent;
+  border-radius: $radius-circle;
+  background: linear-gradient(135deg, $primary-color, $accent-color) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  mask-composite: exclude;
+  opacity: 0;
+  @include smooth-transition(opacity);
+
+  .avatar-circle:hover & {
+    opacity: 1;
+  }
+}
+
+.avatar-edit-btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  z-index: 2;
+  background-color: $surface-color !important;
+  box-shadow: $shadow-md !important;
+  @include smooth-transition(transform, box-shadow);
+
+  &:hover {
+    transform: scale(1.1);
+    @include card-elevation(3);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  mat-icon {
+    color: $primary-color;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Header Info
+// ----------------------------------------------------------------------------
+.header-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-name {
+  margin: 0 0 $spacing-sm 0;
+  font-size: 2rem;
+  font-weight: 600;
+  color: $text-primary;
+  line-height: 1.2;
+  @include text-truncate;
+
+  @include respond-to($breakpoint-sm) {
+    font-size: 1.5rem;
+    text-align: center;
+  }
+}
+
+.profile-subtitle {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin: 0;
+  color: $text-secondary;
+  font-size: 0.875rem;
+
+  @include respond-to($breakpoint-sm) {
+    justify-content: center;
+  }
+
+  mat-icon {
+    font-size: 1.125rem;
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Profile Stats
+// ----------------------------------------------------------------------------
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: $spacing-md;
+  margin-top: $spacing-lg;
+
+  @include respond-to($breakpoint-sm) {
+    grid-template-columns: 1fr;
+    gap: $spacing-sm;
+  }
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md;
+  background: $surface-color;
+  border-radius: $radius-md;
+  border: 1px solid $divider-color;
+  @include smooth-transition(background-color, transform, box-shadow);
+
+  &:hover {
+    background-color: rgba($primary-color, 0.04);
+    transform: translateY(-2px);
+    @include card-elevation(1);
+  }
+
+  mat-icon {
+    color: $primary-color;
+    font-size: 1.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: $text-primary;
+  font-size: 0.875rem;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: $text-secondary;
+}
+
+// ----------------------------------------------------------------------------
+// Form Sections
+// ----------------------------------------------------------------------------
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+}
+
+.form-section {
+  padding: $spacing-xl;
+  border-radius: $radius-lg;
+  background: rgba($primary-color, 0.02);
+  border: 1px solid $divider-color;
+  @include smooth-transition(background-color, border-color);
+
+  &:hover {
+    background: rgba($primary-color, 0.04);
+    border-color: rgba($primary-color, 0.2);
+  }
+
+  @include respond-to($breakpoint-sm) {
+    padding: $spacing-md;
+  }
+}
+
+.section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+}
+
+.section-icon {
+  color: $primary-color;
+  font-size: 1.75rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+}
+
+.section-title-wrapper {
+  flex: 1;
+}
+
+.section-title {
+  margin: 0 0 $spacing-xs 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.section-description {
+  margin: 0;
+  font-size: 0.875rem;
+  color: $text-secondary;
+  line-height: 1.5;
+}
+
+// ----------------------------------------------------------------------------
+// Form Fields
+// ----------------------------------------------------------------------------
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.bio-field {
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+}
+
+.language-option {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+
+  .flag {
+    font-size: 1.25rem;
+  }
+}
+
+// Material form field customization
+::ng-deep {
+  .mat-mdc-form-field {
+    &.full-width {
+      width: 100%;
+    }
+
+    .mat-mdc-text-field-wrapper {
+      @include smooth-transition(background-color);
+    }
+
+    &:hover .mat-mdc-text-field-wrapper {
+      background-color: rgba($primary-color, 0.02);
+    }
+
+    .mat-mdc-form-field-focus-overlay {
+      background-color: transparent;
+    }
+  }
+
+  .mat-mdc-form-field-subscript-wrapper {
+    .mat-mdc-form-field-hint-wrapper {
+      display: flex;
+      justify-content: space-between;
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Info Section
+// ----------------------------------------------------------------------------
+.info-section {
+  padding: 0 $spacing-xl;
+
+  @include respond-to($breakpoint-sm) {
+    padding: 0 $spacing-md;
+  }
+}
+
+.info-card {
+  display: flex;
+  gap: $spacing-md;
+  padding: $spacing-lg;
+  background: linear-gradient(135deg, rgba($primary-color, 0.05) 0%, rgba($primary-color, 0.02) 100%);
+  border-radius: $radius-lg;
+  border-left: 4px solid $primary-color;
+
+  @include respond-to($breakpoint-sm) {
+    padding: $spacing-md;
+  }
+}
+
+.info-icon {
+  color: $primary-color;
+  font-size: 2rem;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+}
+
+.info-content {
+  flex: 1;
+}
+
+.info-title {
+  margin: 0 0 $spacing-sm 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.info-text {
+  margin: 0;
+  font-size: 0.875rem;
+  color: $text-secondary;
+  line-height: 1.6;
+}
+
+// ----------------------------------------------------------------------------
+// Form Actions
+// ----------------------------------------------------------------------------
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $spacing-md;
+  padding: $spacing-lg $spacing-xl;
+  border-top: 1px solid $divider-color;
+  background: rgba($background-light, 0.5);
+
+  @include respond-to($breakpoint-sm) {
+    flex-direction: column-reverse;
+    padding: $spacing-md;
+
+    .action-btn {
+      width: 100%;
+    }
+  }
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: 0 $spacing-lg;
+  min-height: 48px;
+  font-weight: 500;
+  @include smooth-transition(transform, box-shadow);
+
+  &:not(:disabled):hover {
+    transform: translateY(-2px);
+  }
+
+  &:not(:disabled):active {
+    transform: translateY(0);
+  }
+
+  mat-icon {
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+.save-btn {
+  @include card-elevation(2);
+
+  &:not(:disabled):hover {
+    @include card-elevation(3);
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Form Status
+// ----------------------------------------------------------------------------
+.form-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  padding: $spacing-md;
+  background: rgba($warn-color, 0.1);
+  border-radius: $radius-md;
+  color: darken($warn-color, 20%);
+  font-size: 0.875rem;
+  font-weight: 500;
+  animation: fadeInUp 0.3s ease-out;
+
+  mat-icon {
+    font-size: 1.125rem;
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Loading Overlay
+// ----------------------------------------------------------------------------
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  @include flex-center;
+  background: rgba($surface-color, 0.9);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.loading-spinner {
+  @include flex-center;
+  flex-direction: column;
+  gap: $spacing-md;
+
+  mat-icon {
+    font-size: 3rem;
+    width: 3rem;
+    height: 3rem;
+    color: $primary-color;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: $text-secondary;
+    font-weight: 500;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Side Cards
+// ----------------------------------------------------------------------------
+.side-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: $spacing-lg;
+
+  @include respond-to($breakpoint-md) {
+    grid-template-columns: 1fr;
+  }
+
+  @include respond-to($breakpoint-sm) {
+    gap: $spacing-md;
+  }
+}
+
+.info-card-small {
+  border-radius: $radius-lg;
+  @include card-elevation(1);
+  @include smooth-transition(transform, box-shadow);
+
+  &:hover {
+    transform: translateY(-4px);
+    @include card-elevation(2);
+  }
+}
+
+.card-icon-header {
+  @include flex-center;
+  height: 64px;
+  background: linear-gradient(135deg, $primary-color 0%, lighten($primary-color, 10%) 100%);
+  border-radius: $radius-lg $radius-lg 0 0;
+
+  mat-icon {
+    font-size: 2rem;
+    width: 2rem;
+    height: 2rem;
+    color: $surface-color;
+  }
+}
+
+.tips-card {
+  h4 {
+    margin: 0 0 $spacing-md 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: $text-primary;
+  }
+}
+
+.tips-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    padding: $spacing-sm;
+    border-radius: $radius-sm;
+    @include smooth-transition(background-color);
+
+    &:hover {
+      background-color: rgba($success-color, 0.08);
+    }
+
+    mat-icon {
+      color: $success-color;
+      font-size: 1.125rem;
+      width: 1.125rem;
+      height: 1.125rem;
+      flex-shrink: 0;
+    }
+
+    span {
+      font-size: 0.875rem;
+      color: $text-secondary;
+      line-height: 1.4;
+    }
+  }
+}
+
+.activity-card {
+  h4 {
+    margin: 0 0 $spacing-md 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: $text-primary;
+  }
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-md;
+  padding: $spacing-md;
+  border-radius: $radius-sm;
+  @include smooth-transition(background-color);
+
+  &:not(:last-child) {
+    margin-bottom: $spacing-sm;
+  }
+
+  &:hover {
+    background-color: rgba($primary-color, 0.04);
+  }
+
+  mat-icon {
+    color: $primary-color;
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+  }
+}
+
+.activity-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.activity-text {
+  font-size: 0.875rem;
+  color: $text-primary;
+  font-weight: 500;
+}
+
+.activity-time {
+  font-size: 0.75rem;
+  color: $text-secondary;
+}
+
+// ----------------------------------------------------------------------------
+// Animations
+// ----------------------------------------------------------------------------
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+// ----------------------------------------------------------------------------
+// Accessibility
+// ----------------------------------------------------------------------------
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+// Focus styles
+button,
+input,
+textarea,
+select {
+  &:focus-visible {
+    outline: 2px solid $primary-color;
+    outline-offset: 2px;
+  }
+}
+
+// High contrast mode
+@media (prefers-contrast: high) {
+  .profile-card {
+    border: 2px solid $text-primary;
+  }
+
+  .form-section {
+    border-width: 2px;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Print Styles
+// ----------------------------------------------------------------------------
+@media print {
+  .profile-container {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .avatar-edit-btn,
+  .form-actions,
+  .loading-overlay {
+    display: none !important;
+  }
+
+  .profile-card {
+    box-shadow: none;
+    page-break-inside: avoid;
+  }
+}
